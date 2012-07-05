@@ -59,8 +59,7 @@ static char *_prefix_path_lib = NULL;
 #define MAGIC_DAT SHARE_D"/"MAGIC_FILE
 
 /* externally accessible functions */
-int
-e_prefix_determine(char *argv0)
+int e_prefix_determine(char *argv0)
 {
 	char *p, buf[4096];
 	struct stat st;
@@ -172,8 +171,7 @@ e_prefix_determine(char *argv0)
 	return 0;
 }
 
-void
-e_prefix_shutdown(void)
+void e_prefix_shutdown(void)
 {
 	E_FREE(_exe_path);
 	E_FREE(_prefix_path);
@@ -182,40 +180,34 @@ e_prefix_shutdown(void)
 	E_FREE(_prefix_path_lib);
 }
 
-void
-e_prefix_fallback(void)
+void e_prefix_fallback(void)
 {
 	e_prefix_shutdown();
 	_e_prefix_fallbacks();
 }
 
-const char *
-e_prefix_get(void)
+const char* e_prefix_get(void)
 {
 	return _prefix_path;
 }
 
-const char *
-e_prefix_bin_get(void)
+const char* e_prefix_bin_get(void)
 {
 	return _prefix_path_bin;
 }
 
-const char *
-e_prefix_data_get(void)
+const char* e_prefix_data_get(void)
 {
 	return _prefix_path_data;
 }
 
-const char *
-e_prefix_lib_get(void)
+const char* e_prefix_lib_get(void)
 {
 	return _prefix_path_lib;
 }
 
 /* local subsystem functions */
-static int
-_e_prefix_share_hunt(void)
+static int _e_prefix_share_hunt(void)
 {
 	char buf[4096], buf2[4096], *p;
 	struct stat st;
@@ -301,8 +293,7 @@ _e_prefix_share_hunt(void)
 	return 0;
 }
 
-static int
-_e_prefix_fallbacks(void)
+static int _e_prefix_fallbacks(void)
 {
 	char *p;
 
@@ -343,8 +334,7 @@ _e_prefix_try_dyld(void)
 }
 #endif
 
-static int
-_e_prefix_try_proc(void)
+static int _e_prefix_try_proc(void)
 {
 	FILE *f;
 	char buf[4096];
@@ -393,8 +383,7 @@ _e_prefix_try_proc(void)
 	return 0;
 }
 
-static int
-_e_prefix_try_argv(char *argv0)
+static int _e_prefix_try_argv(char *argv0)
 {
 	char *path, *p, *cp, *s;
 	int len, lenexe;

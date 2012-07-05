@@ -12,7 +12,7 @@ const char *e_prefix_lib_get(void);
 
 #define PACKAGE_BIN_DIR "./"
 #define PACKAGE_DATA_DIR "./"
-#define PACKAGE_LIB_DIR "../lib"
+#define PACKAGE_LIB_DIR "../embryo-1.0.0-lib"
 
 // #define PATH_MAX 60
 
