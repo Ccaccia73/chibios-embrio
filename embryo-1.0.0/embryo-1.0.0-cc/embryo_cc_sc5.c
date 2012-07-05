@@ -22,7 +22,6 @@
  *  Version: $Id: embryo_cc_sc5.c 56354 2011-01-29 03:19:51Z raster $
  */
 
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -40,7 +39,7 @@
 #include "embryo_cc_sc5.scp"
 
 static int errflag;
-static int errstart;	/* line number at which the instruction started */
+static int errstart; /* line number at which the instruction started */
 
 /*  error
  *
@@ -54,101 +53,88 @@ static int errstart;	/* line number at which the instruction started */
  *                     fcurrent   (referred to only)
  *                     errflag    (altered)
  */
-int
-error(int number, ...)
-{
-   static int          lastline, lastfile, errorcount;
-   char               *msg;
-   va_list             argptr;
-   char                string[1024];
-   int start;
+int error(int number, ...) {
+	static int lastline, lastfile, errorcount;
+	char *msg;
+	va_list argptr;
+	char string[1024];
+	int start;
 
-   /* errflag is reset on each semicolon.
-    * In a two-pass compiler, an error should not be reported twice. Therefore
-    * the error reporting is enabled only in the second pass (and only when
-    * actually producing output). Fatal errors may never be ignored.
-    */
-   if (((errflag) || (sc_status != statWRITE)) &&
-       ((number < 100) || (number >= 200)))
-     return 0;
+	/* errflag is reset on each semicolon.
+	 * In a two-pass compiler, an error should not be reported twice. Therefore
+	 * the error reporting is enabled only in the second pass (and only when
+	 * actually producing output). Fatal errors may never be ignored.
+	 */
+	if (((errflag) || (sc_status != statWRITE))
+			&& ((number < 100) || (number >= 200)))
+		return 0;
 
-   if (number < 100)
-     {
-	msg = errmsg[number - 1];
-	errflag = TRUE;	/* set errflag (skip rest of erroneous expression) */
-	errnum++;
-     }
-   else if (number < 200)
-     {
-	msg = fatalmsg[number - 100];
-	errnum++; /* a fatal error also counts as an error */
-     }
-   else
-     {
-	msg = warnmsg[number - 200];
-	warnnum++;
-     }
+	if (number < 100) {
+		msg = errmsg[number - 1];
+		errflag = TRUE; /* set errflag (skip rest of erroneous expression) */
+		errnum++;
+	} else if (number < 200) {
+		msg = fatalmsg[number - 100];
+		errnum++; /* a fatal error also counts as an error */
+	} else {
+		msg = warnmsg[number - 200];
+		warnnum++;
+	}
 
-   strexpand(string, (unsigned char *)msg, sizeof string, SCPACK_TABLE);
+	strexpand(string, (unsigned char *) msg, sizeof string, SCPACK_TABLE);
 
-   va_start(argptr, number);
-
-   start = (errstart == fline) ? -1 : errstart;
-
-   if (sc_error(number, string, inpfname, start, fline, argptr))
-   {
-      sc_closeasm(outf);
-      outf = NULL;
-      longjmp(errbuf, 3);
-   }
-
-   va_end(argptr);
-
-   if (((number >= 100) && (number < 200)) || (errnum > 250))
-     {
 	va_start(argptr, number);
-	sc_error(0, "\nCompilation aborted.", NULL, 0, 0, argptr);
+
+	start = (errstart == fline) ? -1 : errstart;
+
+	if (sc_error(number, string, inpfname, start, fline, argptr)) {
+		sc_closeasm(outf);
+		outf = NULL;
+		longjmp(errbuf, 3);
+	}
+
 	va_end(argptr);
 
-	if (outf)
-	  {
-	     sc_closeasm(outf);
-	     outf = NULL;
-	  }			/* if */
-	longjmp(errbuf, 2);	/* fatal error, quit */
-     }				/* if */
+	if (((number >= 100) && (number < 200)) || (errnum > 250)) {
+		va_start(argptr, number);
+		sc_error(0, "\nCompilation aborted.", NULL, 0, 0, argptr);
+		va_end(argptr);
 
-   /* check whether we are seeing many errors on the same line */
-   if (((errstart < 0) && (lastline != fline)) ||
-       (lastline < errstart) || (lastline > fline) || (fcurrent != lastfile))
-      errorcount = 0;
-   lastline = fline;
-   lastfile = fcurrent;
-   if (number < 200)
-      errorcount++;
-   if (errorcount >= 3)
-      error(107); /* too many error/warning messages on one line */
-   return 0;
+		if (outf) {
+			sc_closeasm(outf);
+			outf = NULL;
+		} /* if */
+		longjmp(errbuf, 2); /* fatal error, quit */
+	} /* if */
+
+	/* check whether we are seeing many errors on the same line */
+	if (((errstart < 0) && (lastline != fline)) || (lastline < errstart)
+			|| (lastline > fline) || (fcurrent != lastfile))
+		errorcount = 0;
+	lastline = fline;
+	lastfile = fcurrent;
+	if (number < 200)
+		errorcount++;
+	if (errorcount >= 3)
+		error(107); /* too many error/warning messages on one line */
+	return 0;
 }
 
-void
-errorset(int code)
-{
-   switch (code)
-     {
-      case sRESET:
-	errflag = FALSE;	/* start reporting errors */
-	break;
-      case sFORCESET:
-	errflag = TRUE;		/* stop reporting errors */
-	break;
-      case sEXPRMARK:
-	errstart = fline;	/* save start line number */
-	break;
-      case sEXPRRELEASE:
-	errstart = -1;		/* forget start line number */
-	break;
-      default:
-	break;
-     }
+void errorset(int code) {
+	switch (code) {
+	case sRESET:
+		errflag = FALSE; /* start reporting errors */
+		break;
+	case sFORCESET:
+		errflag = TRUE; /* stop reporting errors */
+		break;
+	case sEXPRMARK:
+		errstart = fline; /* save start line number */
+		break;
+	case sEXPRRELEASE:
+		errstart = -1; /* forget start line number */
+		break;
+	default:
+		break;
+	}
 }
