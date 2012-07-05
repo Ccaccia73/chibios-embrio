@@ -2,6 +2,8 @@
 */.project
 */.cproject
 */.metadata
+*/RemoteSystemsTempFiles
+*/backup
 
 #compiled
 *.o
@@ -13,7 +15,7 @@
 
 #embryo compiler
 */obj/*
-embryo_cc
+*/embryo_cc
 
 #embryo library
 */armdir/*
