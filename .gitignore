@@ -1,9 +1,9 @@
 #eclipse files
-*/.project
-*/.cproject
-*/.metadata
-*/RemoteSystemsTempFiles
-*/backup
+.project
+.cproject
+.metadata/
+RemoteSystemsTempFiles/
+backup/
 
 #compiled
 *.o
@@ -14,12 +14,12 @@
 *.*~
 
 #embryo compiler
-*/obj/*
-*/embryo_cc
+obj/
+embryo_cc
 
 #embryo library
-*/armdir/*
-*/simdir/*
+armdir/
+simdir/
 
 
 #other

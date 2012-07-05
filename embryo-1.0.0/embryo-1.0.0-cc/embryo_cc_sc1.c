@@ -51,8 +51,8 @@
 static void         resetglobals(void);
 static void         initglobals(void);
 static void         setopt(int argc, char **argv,
-		char *iname, char *oname,
-		char *pname, char *rname);
+						   char *iname, char *oname,
+						   char *pname, char *rname);
 
 static void         setconfig(char *root);
 static void         about(void);
@@ -61,41 +61,41 @@ static void         parse(void);
 static void         dumplits(void);
 static void         dumpzero(int count);
 static void         declfuncvar(int tok, char *symname,
-		int tag, int fpublic,
-		int fstatic, int fstock, int fconst);
+								int tag, int fpublic,
+								int fstatic, int fstock, int fconst);
 
 static void         declglb(char *firstname, int firsttag,
-		int fpublic, int fstatic, int stock, int fconst);
+							int fpublic, int fstatic, int stock, int fconst);
 
 static int          declloc(int fstatic);
 static void         decl_const(int table);
 static void         decl_enum(int table);
 static cell         needsub(int *tag);
 static void         initials(int ident, int tag,
-		cell * size, int dim[], int numdim);
+							 cell * size, int dim[], int numdim);
 
 static cell         initvector(int ident, int tag, cell size, int fillzero);
 static cell         init(int ident, int *tag);
 static void         funcstub(int native);
 static int          newfunc(char *firstname, int firsttag,
-		int fpublic, int fstatic, int stock);
+							int fpublic, int fstatic, int stock);
 
 static int          declargs(symbol * sym);
 static void         doarg(char *name, int ident, int offset,
-		int tags[], int numtags,
-		int fpublic, int fconst, arginfo * arg);
+						  int tags[], int numtags,
+						  int fpublic, int fconst, arginfo * arg);
 
 static void         reduce_referrers(symbol * root);
 static int          testsymbols(symbol * root, int level,
-		int testlabs, int testconst);
+								int testlabs, int testconst);
 
 static void         destructsymbols(symbol * root, int level);
 static constvalue  *find_constval_byval(constvalue * table, cell val);
 static void         statement(int *lastindent, int allow_decl);
 static void         compound(void);
 static void         doexpr(int comma, int chkeffect,
-		int allowarray, int mark_endexpr,
-		int *tag, int chkfuncresult);
+						   int allowarray, int mark_endexpr,
+						   int *tag, int chkfuncresult);
 static void         doassert(void);
 static void         doexit(void);
 static void         test(int label, int parens, int invert);
@@ -141,10 +141,10 @@ int main(int argc, char *argv[], char *env[] )
 	}
 	else
 	{
-		char               *pwd = getenv("PWD");
-
-		if (pwd)
+		char *pwd = getenv("PWD");
+		if (pwd){
 			snprintf(argv0, sizeof(argv0), "%s/%s", pwd, argv[0]);
+		}
 	}				/* if */
 	argv[0] = argv0;		/* set location to new first parameter */
 
