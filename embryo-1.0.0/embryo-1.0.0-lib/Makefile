@@ -26,9 +26,10 @@ CFLAGS+=-Wall -O2
 
 ############################################################################
 
-CHIBIOS = ../../ChibiOS_2.2.7_HY
-CHIBIOS_EMBRIO = ../../ChibiOS-Embrio
-BOARD=HY-STM32_STM32F103V
+CHIBIOS = ../../../ChibiOS_2.4.1
+CHIBIOS_EMBRIO = ../../ChibiOS-EmbrIO
+#BOARD=HY-STM32_STM32F103V
+BOARD=OLIMEX_STM32_P107
 
 INCDIR+=-I$(CHIBIOS)/os/hal/include/
 INCDIR+=-I$(CHIBIOS)/os/hal/templates/

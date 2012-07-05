@@ -1,0 +1,24 @@
+#eclipse files
+*/.project
+*/.cproject
+*/.metadata
+
+#compiled
+*.o
+*.so
+*.a
+
+#backup
+*.*~
+
+#embryo compiler
+*/obj/*
+embryo_cc
+
+#embryo library
+*/armdir/*
+*/simdir/*
+
+
+#other
+.* !.gitignore
