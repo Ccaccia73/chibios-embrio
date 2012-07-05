@@ -311,13 +311,20 @@ int sc_compile(int argc, char *argv[])
 	tmpdir = (char *)evil_tmpdir_get();
 #endif /* ! HAVE_EVIL */
 
+#ifdef _ORIGINAL_
 	snprintf(outfname, PATH_MAX, "%s/embryo_cc.asm-tmp-XXXXXX", tmpdir);
+
 	fd_out = mkstemp(outfname);
 	if (fd_out < 0)
 		error(101, outfname);
 
 	unlink (outfname); /* kill this file as soon as it's (f)close'd */
+#else
+	fd_out = fopen("./embryo_cc.asm01","rw");
 
+	if (fd_out < 0)
+		error(101, "./embryo_cc.asm01");
+#endif
 	setconfig(argv[0]);		/* the path to the include files */
 	lcl_ctrlchar = sc_ctrlchar;
 	lcl_packstr = sc_packstr;

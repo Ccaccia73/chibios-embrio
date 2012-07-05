@@ -16,6 +16,7 @@ backup/
 #embryo compiler
 obj/
 embryo_cc
+embryo_cc.exe
 
 #embryo library
 armdir/

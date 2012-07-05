@@ -38,7 +38,11 @@
 /* local subsystem functions */
 static int _e_prefix_share_hunt(void);
 static int _e_prefix_fallbacks(void);
-static int _e_prefix_try_proc(void);
+
+#ifdef _ORIGINAL_
+	static int _e_prefix_try_proc(void);
+#endif
+
 static int _e_prefix_try_argv(char *argv0);
 #ifdef __MacOSX__
 static int _e_prefix_try_dyld(void);
@@ -70,6 +74,9 @@ int e_prefix_determine(char *argv0)
 	 * dirs for bin, lib, data and locale */
 	if (getenv("EMBRYO_PREFIX"))
 	{
+		// I don't expect to pass here, no environment variable set
+		printf("We have an environment variable!");
+
 		_prefix_path = strdup(getenv("EMBRYO_PREFIX"));
 		if (getenv("EMBRYO_BIN_DIR"))
 			snprintf(buf, sizeof(buf), "%s/bin", getenv("EMBRYO_BIN_DIR"));
@@ -91,8 +98,10 @@ int e_prefix_determine(char *argv0)
 		return 1;
 	}
 	/* no env var - examine process and possible argv0 */
+#ifdef _ORIGINAL_
 	if (!_e_prefix_try_proc())
 	{
+#endif
 		if (!_e_prefix_try_argv(argv0))
 		{
 #ifdef __MacOSX__
@@ -104,8 +113,9 @@ int e_prefix_determine(char *argv0)
 #ifdef __MacOSX__
 			}
 #endif
-
+#ifdef _ORIGINAL_
 		}
+#endif
 	}
 	/* _exe_path is now a full absolute path TO this exe - figure out rest */
 	/*   if
@@ -299,7 +309,9 @@ static int _e_prefix_fallbacks(void)
 
 	_prefix_path = strdup(PACKAGE_BIN_DIR);
 	p = strrchr(_prefix_path, '/');
-	if (p) *p = 0;
+	if (p){
+		*p = 0;
+	}
 	_prefix_path_bin    = strdup(PACKAGE_BIN_DIR);
 	_prefix_path_data   = strdup(PACKAGE_DATA_DIR);
 	_prefix_path_lib    = strdup(PACKAGE_LIB_DIR);
@@ -334,6 +346,8 @@ _e_prefix_try_dyld(void)
 }
 #endif
 
+
+#ifdef _ORIGINAL_
 static int _e_prefix_try_proc(void)
 {
 	FILE *f;
@@ -382,6 +396,7 @@ static int _e_prefix_try_proc(void)
 	fclose(f);
 	return 0;
 }
+#endif
 
 static int _e_prefix_try_argv(char *argv0)
 {
@@ -404,7 +419,8 @@ static int _e_prefix_try_argv(char *argv0)
 		if (getcwd(buf3, sizeof(buf3)))
 		{
 			snprintf(buf2, sizeof(buf2), "%s/%s", buf3, argv0);
-			if (realpath(buf2, buf))
+			if(1)
+			// if (realpath(buf2, buf))
 			{
 				_exe_path = strdup(buf);
 				if (access(_exe_path, X_OK) == 0) return 1;
@@ -428,7 +444,11 @@ static int _e_prefix_try_argv(char *argv0)
 			strncpy(s, cp, len);
 			s[len] = '/';
 			strcpy(s + len + 1, argv0);
+#ifdef _ORIGINAL_
 			if (realpath(s, buf))
+#else
+			if(1)
+#endif
 			{
 				if (access(buf, X_OK) == 0)
 				{
@@ -448,7 +468,11 @@ static int _e_prefix_try_argv(char *argv0)
 		strncpy(s, cp, len);
 		s[len] = '/';
 		strcpy(s + len + 1, argv0);
+#ifdef _ORIGINAL_
 		if (realpath(s, buf))
+#else
+		if(1)
+#endif
 		{
 			if (access(buf, X_OK) == 0)
 			{
