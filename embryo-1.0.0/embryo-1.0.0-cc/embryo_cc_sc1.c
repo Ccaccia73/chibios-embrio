@@ -320,10 +320,7 @@ int sc_compile(int argc, char *argv[])
 
 	unlink (outfname); /* kill this file as soon as it's (f)close'd */
 #else
-	fd_out = fopen("./embryo_cc.asm01","rw");
-
-	if (fd_out < 0)
-		error(101, "./embryo_cc.asm01");
+	outf = fopen("./embryo_cc.asm01","w+");
 #endif
 	setconfig(argv[0]);		/* the path to the include files */
 	lcl_ctrlchar = sc_ctrlchar;
@@ -334,8 +331,10 @@ int sc_compile(int argc, char *argv[])
 	if (!inpf)
 		error(100, inpfname);
 	freading = TRUE;
+#ifdef _ORIGINAL_
 	outf = (FILE *) sc_openasm(fd_out);	/* first write to assembler
 	 * file (may be temporary) */
+#endif
 	if (!outf)
 		error(101, outfname);
 	/* immediately open the binary file, for other programs to check */
