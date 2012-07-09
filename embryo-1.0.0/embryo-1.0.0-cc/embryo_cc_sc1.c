@@ -270,7 +270,10 @@ long sc_lengthbin(void *handle)
  */
 int sc_compile(int argc, char *argv[])
 {
-	int                 entry, i, jmpcode, fd_out;
+	int                 entry, i, jmpcode;
+#ifdef _ORIGINAL_
+	int fd_out;
+#endif
 	int                 retcode;
 	char                incfname[PATH_MAX];
 	char                reportname[PATH_MAX];
@@ -320,7 +323,9 @@ int sc_compile(int argc, char *argv[])
 
 	unlink (outfname); /* kill this file as soon as it's (f)close'd */
 #else
-	outf = fopen("./embryo_cc.asm01","w+");
+	snprintf(outfname,PATH_MAX,"./embryo_cc.asm01");
+	outf = fopen(outfname,"w+");
+	printf("Filename: %s\n\n",outfname);
 #endif
 	setconfig(argv[0]);		/* the path to the include files */
 	lcl_ctrlchar = sc_ctrlchar;

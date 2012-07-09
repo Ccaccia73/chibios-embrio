@@ -7,7 +7,7 @@ INCDIR+= -I$(EMBRYOLIBDIR)
 
 LIBS+= -lm
 
-CFLAGS+=-O2 -Wall $(INCDIR)
+CFLAGS+=-O2 -Wall -g3 $(INCDIR)
 
 
 CC=gcc

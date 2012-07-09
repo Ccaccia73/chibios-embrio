@@ -108,6 +108,11 @@ int e_prefix_determine(char *argv0)
 			if (!_e_prefix_try_dyld())
 			{
 #endif
+
+				printf("No environment variable, proc filesystem skipped.\n\n");
+				printf("Starting fallback procedure...\n\n");
+
+
 				_e_prefix_fallbacks();
 				return 0;
 #ifdef __MacOSX__
