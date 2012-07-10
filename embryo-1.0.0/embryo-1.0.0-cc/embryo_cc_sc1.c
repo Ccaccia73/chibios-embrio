@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -177,6 +178,7 @@ int sc_error(int number, char *message, char *filename, int firstline,
 
 void* sc_opensrc(char *filename)
 {
+	printf("Trying to open file: %s\n",filename);
 	return fopen(filename, "rb");
 }
 
@@ -323,9 +325,12 @@ int sc_compile(int argc, char *argv[])
 
 	unlink (outfname); /* kill this file as soon as it's (f)close'd */
 #else
-	snprintf(outfname,PATH_MAX,"./embryo_cc.asm01");
+	snprintf(outfname,PATH_MAX,"embryo_cc.asm01");
 	outf = fopen(outfname,"w+");
 	printf("Filename: %s\n\n",outfname);
+	if (outf == NULL) {
+		fprintf(stderr,"error: %s\n\n",strerror(errno));
+	}
 #endif
 	setconfig(argv[0]);		/* the path to the include files */
 	lcl_ctrlchar = sc_ctrlchar;
@@ -333,14 +338,17 @@ int sc_compile(int argc, char *argv[])
 	lcl_needsemicolon = sc_needsemicolon;
 	lcl_tabsize = sc_tabsize;
 	inpf = inpf_org = (FILE *) sc_opensrc(inpfname);
-	if (!inpf)
+	if (inpf == NULL)
+	{
+		printf("PIPPO\n");
 		error(100, inpfname);
+	}
 	freading = TRUE;
 #ifdef _ORIGINAL_
 	outf = (FILE *) sc_openasm(fd_out);	/* first write to assembler
 	 * file (may be temporary) */
 #endif
-	if (!outf)
+	if (outf == NULL )
 		error(101, outfname);
 	/* immediately open the binary file, for other programs to check */
 	binf = (FILE *) sc_openbin(binfname);

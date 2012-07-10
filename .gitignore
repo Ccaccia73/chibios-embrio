@@ -18,6 +18,8 @@ backup/
 obj/
 embryo_cc
 embryo_cc.exe
+*.asm01
+*.p
 
 #embryo library
 armdir/
