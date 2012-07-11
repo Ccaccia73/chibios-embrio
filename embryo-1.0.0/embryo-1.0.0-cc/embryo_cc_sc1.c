@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <getopt.h>
 
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -56,7 +57,7 @@ static void         setopt(int argc, char **argv,
 						   char *pname, char *rname);
 
 static void         setconfig(char *root);
-static void         about(void);
+static void         about(FILE *stream);
 static void         setconstants(void);
 static void         parse(void);
 static void         dumplits(void);
@@ -327,7 +328,7 @@ int sc_compile(int argc, char *argv[])
 #else
 	snprintf(outfname,PATH_MAX,"embryo_cc.asm01");
 	outf = fopen(outfname,"w+");
-	printf("Filename: %s\n\n",outfname);
+	// printf("Filename: %s\n\n",outfname);
 	if (outf == NULL) {
 		fprintf(stderr,"error: %s\n\n",strerror(errno));
 	}
@@ -606,57 +607,112 @@ static void parseoptions(int argc, char **argv, char *iname, char *oname,
 		char *pname , char *rname )
 {
 	char str[PATH_MAX];
-	int i, stack_size;
+	int stack_size;
 	size_t len;
+	int next_option;
+	short codefile = 0;
+	short outfile = 0;
 
 	/* use embryo include dir always */
 	snprintf(str, sizeof(str), "%s/include/", e_prefix_data_get());
 	insert_path(str);
 	insert_path("./");
 
-	for (i = 1; i < argc; i++)
-	{
-		if (!strcmp (argv[i], "-i") && (i + 1 < argc) && *argv[i + 1])
-		{
-			/* include directory */
-			i++;
-			strncpy(str, argv[i], sizeof(str));
+	/* A string listing valid short options letters. */
+	const char* const short_options = "c:i:o:S:h";
+	/* An array describing valid long options. */
+	const struct option long_options[] = {
+		{ "code", 1, NULL, 'c' },
+		{ "input", 1, NULL, 'i' },
+		{ "output", 1, NULL, 'o' },
+		{ "size", 1, NULL, 'S' },
+		{ "help", 0, NULL, 'h' },
+		{ NULL, 0, NULL, 0 } /* Required at end of array. */
+	};
 
-			len = strlen(str);
-			if (str[len - 1] != DIRSEP_CHAR)
-			{
-				str[len] = DIRSEP_CHAR;
-				str[len + 1] = '\0';
-			}
 
-			insert_path(str);
-		}
-		else if (!strcmp (argv[i], "-o") && (i + 1 < argc) && *argv[i + 1])
-		{
-			/* output file */
-			i++;
-			strcpy(oname, argv[i]); /* FIXME */
-		}
-		else if (!strcmp (argv[i], "-S") && (i + 1 < argc) && *argv[i + 1])
-		{
-			/* stack size */
-			i++;
-			stack_size = atoi(argv[i]);
+	// program_name = argv[0];
 
-			if (stack_size > 64)
-				sc_stksize = (cell) stack_size;
-			else
-				about();
+	do {
+		next_option = getopt_long(argc, argv, short_options, long_options, NULL );
+
+		switch (next_option) {
+			case 'c':
+				// input file with code
+				strcpy(iname, optarg);
+				// found a file with code
+				codefile++;
+				break;
+			case 'i':
+				// include directory
+				strncpy(str, optarg, sizeof(str));
+				// code copied from original
+				len = strlen(str);
+				if (str[len - 1] != DIRSEP_CHAR)
+				{
+					str[len] = DIRSEP_CHAR;
+					str[len + 1] = '\0';
+				}
+				insert_path(str);
+				break;
+			case 'o':
+				// output filename
+				strcpy(oname, optarg);
+				outfile++;
+				break;
+			case 'S':
+				// stack/heap size
+				stack_size = atoi(optarg);
+
+				if (stack_size > 64){
+					sc_stksize = (cell) stack_size;
+				}else{
+					about(stderr);
+				}
+				break;
+			case 'h':
+				// user requested usage information
+				about(stdout);
+				break;
+			case '?': /* The user specified an invalid option. */
+				about(stderr);
+				break;
+			case -1: /* Done with options. */
+				break;
+			default:
+				about(stderr);
+				break;
 		}
-		else if (!*iname)
-		{
-			/* input file */
-			strcpy(iname, argv[i]); /* FIXME */
-		}
-		else
-		{
-			/* only allow one input filename */
-			about();
+	} while (next_option != -1);
+
+	// verify that we have all the necessary data and define implicit info
+
+	if(codefile == 0){
+		// we did not find a source code file, which is mandatory
+		about(stderr);
+	}else if(outfile == 0){
+		/* we found a source code but no output file
+		 * by default we define the same name with .eaf extension
+		 * (embryo assembly file)
+		 */
+
+		strcpy(oname,iname);
+
+		char *pExt = strrchr(oname,'.');
+		char *pFile = strrchr(oname, '/');
+
+		if ( (pExt != NULL) && (pExt > pFile) ){
+			// file has an extension
+			strcpy(pExt, ".eaf");
+			// test to see if the output file is correctly written
+			// printf("input file: %s\n",iname);
+			// printf("output file: %s\n",oname);
+		}else{
+			// file doesn't have an extension
+			strcat(oname, ".eaf");
+			// test to see if the output file is correctly written
+			// printf("input file: %s\n",iname);
+			// printf("output file: %s\n",oname);
 		}
 	}
 }
@@ -672,7 +728,7 @@ static void setopt(int argc, char **argv, char *iname, char *oname,
 
 	parseoptions(argc, argv, iname, oname, pname, rname);
 	if (iname[0] == '\0')
-		about();
+		about(stderr);
 }
 
 static void setconfig(char *root)
@@ -709,10 +765,10 @@ static void setconfig(char *root)
 	}				/* if */
 }
 
-static void about(void)
+static void about(FILE *stream)
 {
-	printf("Usage:   embryo_cc <filename> [options]\n\n");
-	printf("Options:\n");
+	fprintf(stream,"\n\nUsage:   embryo_cc -c  --code <filename> [options]\n\n");
+	fprintf(stream,"Options:\n");
 #if 0
 	printf
 	("         -A<num>  alignment in bytes of the data segment and the\
@@ -741,11 +797,11 @@ static void about(void)
 	printf("         -d3      full debug information, dynamic checking,\
      no optimization\n");
 #endif
-	printf("         -i <name> path for include files\n");
+	fprintf(stream,"\t-i  (--include) <name> path for include files\n");
 #if 0
 	printf("         -l       create list file (preprocess only)\n");
 #endif
-	printf("         -o <name> set base name of output file\n");
+	fprintf(stream,"\t-o  (--output) <name> set base name of output file\n");
 #if 0
 	printf
 	("         -P[+/-]  strings are \"packed\" by default (default=%c)\n",
@@ -754,8 +810,8 @@ static void about(void)
 	if (!waitkey())
 		longjmp(errbuf, 3);
 #endif
-	printf
-	("         -S <num>  stack/heap size in cells (default=%d, min=65)\n",
+	fprintf
+	(stream,"\t-S  (--size) <num>  stack/heap size in cells (default=%d, min=65)\n",
 			(int)sc_stksize);
 #if 0
 	printf("         -s<num>  skip lines from the input file\n");
@@ -770,6 +826,8 @@ static void about(void)
 	("         sym=val  define constant \"sym\" with value \"val\"\n");
 	printf("         sym=     define constant \"sym\" with value 0\n");
 #endif
+	fprintf(stream,"\n\t-h  (--help)  Display usage information\n\n");
+
 	longjmp(errbuf, 3);		/* user abort */
 }
 

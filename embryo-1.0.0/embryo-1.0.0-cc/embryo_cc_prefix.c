@@ -14,7 +14,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <time.h>
-#include <dirent.h>
+// #include <dirent.h>
 
 #ifndef _MSC_VER
 # include <unistd.h>
@@ -74,7 +74,9 @@ int e_prefix_determine(char *argv0)
 	 * dirs for bin, lib, data and locale */
 	if (getenv("EMBRYO_PREFIX"))
 	{
-		// I don't expect to pass here, no environment variable set
+		/* we don't expect to pass here, no environment variable set
+		 * but we leave the original code
+		 */
 		printf("We have an environment variable!");
 
 		_prefix_path = strdup(getenv("EMBRYO_PREFIX"));
@@ -449,10 +451,10 @@ static int _e_prefix_try_argv(char *argv0)
 			strncpy(s, cp, len);
 			s[len] = '/';
 			strcpy(s + len + 1, argv0);
-#ifdef _ORIGINAL_
-			if (realpath(s, buf))
+#ifdef _WINDOWS_
+			if( _fullpath(buf,s,PATH_MAX))
 #else
-			if(1)
+			if (realpath(s, buf))
 #endif
 			{
 				if (access(buf, X_OK) == 0)
@@ -473,10 +475,10 @@ static int _e_prefix_try_argv(char *argv0)
 		strncpy(s, cp, len);
 		s[len] = '/';
 		strcpy(s + len + 1, argv0);
-#ifdef _ORIGINAL_
-		if (realpath(s, buf))
+#ifdef _WINDOWS_
+		if( _fullpath(buf,s,PATH_MAX))
 #else
-		if(1)
+ 		if (realpath(s, buf))
 #endif
 		{
 			if (access(buf, X_OK) == 0)
