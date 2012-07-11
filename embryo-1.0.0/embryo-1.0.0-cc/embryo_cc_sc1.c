@@ -340,7 +340,6 @@ int sc_compile(int argc, char *argv[])
 	inpf = inpf_org = (FILE *) sc_opensrc(inpfname);
 	if (inpf == NULL)
 	{
-		printf("PIPPO\n");
 		error(100, inpfname);
 	}
 	freading = TRUE;
@@ -348,12 +347,16 @@ int sc_compile(int argc, char *argv[])
 	outf = (FILE *) sc_openasm(fd_out);	/* first write to assembler
 	 * file (may be temporary) */
 #endif
-	if (outf == NULL )
+	if (outf == NULL ) {
+		printf("not able to open assembly file.\n");
 		error(101, outfname);
+	}
 	/* immediately open the binary file, for other programs to check */
 	binf = (FILE *) sc_openbin(binfname);
-	if (!binf)
+	if (!binf){
+		printf("not able to open binary file.\n");
 		error(101, binfname);
+	}
 	setconstants();		/* set predefined constants and tagnames */
 	for (i = 0; i < skipinput; i++)	/* skip lines in the input file */
 		if (sc_readsrc(inpf, pline, sLINEMAX))
