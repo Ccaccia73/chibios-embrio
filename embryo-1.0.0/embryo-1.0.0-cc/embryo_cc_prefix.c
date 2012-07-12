@@ -426,8 +426,11 @@ static int _e_prefix_try_argv(char *argv0)
 		if (getcwd(buf3, sizeof(buf3)))
 		{
 			snprintf(buf2, sizeof(buf2), "%s/%s", buf3, argv0);
-			if(1)
-			// if (realpath(buf2, buf))
+#if (defined __MINGW32__) || (defined __MINGW64__)
+			if( _fullpath(buf,buf2,PATH_MAX))
+#else
+			if (realpath(buf2, buf))
+#endif
 			{
 				_exe_path = strdup(buf);
 				if (access(_exe_path, X_OK) == 0) return 1;
@@ -451,7 +454,7 @@ static int _e_prefix_try_argv(char *argv0)
 			strncpy(s, cp, len);
 			s[len] = '/';
 			strcpy(s + len + 1, argv0);
-#ifdef _WINDOWS_
+#if (defined __MINGW32__) || (defined __MINGW64__)
 			if( _fullpath(buf,s,PATH_MAX))
 #else
 			if (realpath(s, buf))
@@ -475,7 +478,7 @@ static int _e_prefix_try_argv(char *argv0)
 		strncpy(s, cp, len);
 		s[len] = '/';
 		strcpy(s + len + 1, argv0);
-#ifdef _WINDOWS_
+#if (defined __MINGW32__) || (defined __MINGW64__)
 		if( _fullpath(buf,s,PATH_MAX))
 #else
  		if (realpath(s, buf))
