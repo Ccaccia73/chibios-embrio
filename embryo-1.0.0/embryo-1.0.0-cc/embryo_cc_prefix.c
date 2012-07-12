@@ -59,7 +59,11 @@ static char *_prefix_path_lib = NULL;
 
 /*#define PREFIX_CACHE_FILE 1*/
 #define SHARE_D "share/embryo"
+#if (defined __MINGW32__) || (defined __MINGW64__)
+#define MAGIC_FILE "include\\default.inc"
+#else
 #define MAGIC_FILE "include/default.inc"
+#endif
 #define MAGIC_DAT SHARE_D"/"MAGIC_FILE
 
 /* externally accessible functions */
@@ -104,7 +108,7 @@ int e_prefix_determine(char *argv0)
 	if (!_e_prefix_try_proc())
 	{
 #endif
-		if (!_e_prefix_try_argv(argv0))
+		if (_e_prefix_try_argv(argv0) == 0)
 		{
 #ifdef __MacOSX__
 			if (!_e_prefix_try_dyld())
@@ -133,28 +137,54 @@ int e_prefix_determine(char *argv0)
 	 * data_dir   = /blah/whatever/share/enlightenment
 	 * lib_dir    = /blah/whatever/lib
 	 */
+#if (defined __MINGW32__) || (defined __MINGW64__)
+	p = strrchr(_exe_path, '\\');
+#else
 	p = strrchr(_exe_path, '/');
+#endif
 	if (p)
 	{
 		p--;
 		while (p >= _exe_path)
 		{
+#if (defined __MINGW32__) || (defined __MINGW64__)
+			if (*p == '\\')
+#else
 			if (*p == '/')
+#endif
 			{
 				_prefix_path = malloc(p - _exe_path + 1);
+
 				if (_prefix_path)
 				{
 					strncpy(_prefix_path, _exe_path, p - _exe_path);
+
+					printf("prefix path: %s\n",_prefix_path);
+
 					_prefix_path[p - _exe_path] = 0;
 
+					printf("prefix path: %s\n",_prefix_path);
+
 					/* bin and lib always together */
-					snprintf(buf, sizeof(buf), "%s/bin", _prefix_path);
+#if (defined __MINGW32__) || (defined __MINGW64__)
+					snprintf(buf, sizeof(buf), "%s\\embryo-1.0.0-cc", _prefix_path);
+#else
+					snprintf(buf, sizeof(buf), "%s/embryo-1.0.0-cc", _prefix_path);
+#endif
 					_prefix_path_bin = strdup(buf);
-					snprintf(buf, sizeof(buf), "%s/lib", _prefix_path);
+#if (defined __MINGW32__) || (defined __MINGW64__)
+					snprintf(buf, sizeof(buf), "%s\\embryo-1.0.0-lib", _prefix_path);
+#else
+					snprintf(buf, sizeof(buf), "%s/embryo-1.0.0-lib", _prefix_path);
+#endif
 					_prefix_path_lib = strdup(buf);
 
 					/* check if AUTHORS file is there - then our guess is right */
-					snprintf(buf, sizeof(buf), "%s/"MAGIC_DAT, _prefix_path);
+#if (defined __MINGW32__) || (defined __MINGW64__)
+					snprintf(buf, sizeof(buf), "%s\\"MAGIC_FILE, _prefix_path);
+#else
+					snprintf(buf, sizeof(buf), "%s/"MAGIC_FILE, _prefix_path);
+#endif
 					if (stat(buf, &st) == 0)
 					{
 						snprintf(buf, sizeof(buf), "%s/"SHARE_D, _prefix_path);
@@ -411,11 +441,26 @@ static int _e_prefix_try_argv(char *argv0)
 	int len, lenexe;
 	char buf[4096], buf2[4096], buf3[4096];
 
+	printf("Trying argv:\n");
+	printf("argv0 = %s\n",argv0);
+
+
 	/* 1. is argv0 abs path? */
+#if (defined __MINGW32__) || (defined __MINGW64__)
+	// we guess that the path is something like C:\...
+	if (argv0[1] == ':')
+#else
 	if (argv0[0] == '/')
+#endif
 	{
 		_exe_path = strdup(argv0);
-		if (access(_exe_path, X_OK) == 0) return 1;
+		if (access(_exe_path, X_OK) == 0){
+			printf("\nFile is executable.\n");
+			return 1;
+		}
+		else{
+			perror ("The following error occurred: ");
+		}
 		free(_exe_path);
 		_exe_path = NULL;
 		return 0;
@@ -427,8 +472,10 @@ static int _e_prefix_try_argv(char *argv0)
 		{
 			snprintf(buf2, sizeof(buf2), "%s/%s", buf3, argv0);
 #if (defined __MINGW32__) || (defined __MINGW64__)
+			// printf("fullpath!!\n");
 			if( _fullpath(buf,buf2,PATH_MAX))
 #else
+			// printf("realpath!!\n");
 			if (realpath(buf2, buf))
 #endif
 			{
@@ -455,8 +502,10 @@ static int _e_prefix_try_argv(char *argv0)
 			s[len] = '/';
 			strcpy(s + len + 1, argv0);
 #if (defined __MINGW32__) || (defined __MINGW64__)
+			// printf("fullpath!!\n");
 			if( _fullpath(buf,s,PATH_MAX))
 #else
+			// printf("realpath!!\n");
 			if (realpath(s, buf))
 #endif
 			{
@@ -479,8 +528,10 @@ static int _e_prefix_try_argv(char *argv0)
 		s[len] = '/';
 		strcpy(s + len + 1, argv0);
 #if (defined __MINGW32__) || (defined __MINGW64__)
+		// printf("fullpath!!\n");
 		if( _fullpath(buf,s,PATH_MAX))
 #else
+		// printf("realpath!!\n");
  		if (realpath(s, buf))
 #endif
 		{

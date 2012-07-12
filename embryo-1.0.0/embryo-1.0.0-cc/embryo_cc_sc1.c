@@ -127,8 +127,7 @@ static char         binfname[PATH_MAX];	/* binary file name */
 
 int main(int argc, char *argv[], char *env[] )
 {
-	char                argv0[PATH_MAX];
-	int                 i;
+	char	argv0[PATH_MAX];
 
 	snprintf(argv0, sizeof(argv0), "%s", argv[0]);
 	/* Linux stores the name of the program in argv[0], but not the path.
@@ -136,8 +135,12 @@ int main(int argc, char *argv[], char *env[] )
 	 * so, I try to get the current path with getcwd(), and if that fails
 	 * I search for the PWD= setting in the environment.
 	 */
+#if !((defined __MINGW32__ ) || (defined __MINGW64__))
+	int		i;
 	if (getcwd(argv0, PATH_MAX))
 	{
+		// printf("Executing getcwd...\n");
+		// printf("argv0 = %s\n",argv0);
 		i = strlen(argv0);
 		snprintf(argv0 + i, sizeof(argv0) - i, "/%s", argv[0]);
 	}
@@ -145,9 +148,11 @@ int main(int argc, char *argv[], char *env[] )
 	{
 		char *pwd = getenv("PWD");
 		if (pwd){
+
 			snprintf(argv0, sizeof(argv0), "%s/%s", pwd, argv[0]);
 		}
 	}				/* if */
+#endif
 	argv[0] = argv0;		/* set location to new first parameter */
 
 	e_prefix_determine(argv0);
