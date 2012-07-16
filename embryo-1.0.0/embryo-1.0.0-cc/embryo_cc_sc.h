@@ -50,7 +50,12 @@
 #define PUBLIC_CHAR '@'			/* character that defines a function "public" */
 #define CTRL_CHAR   '\\'		/* default control character */
 
-#define DIRSEP_CHAR '/'			/* directory separator character */
+
+#if (defined __MINGW32__) || (defined __MINGW64__)
+	#define DIRSEP_CHAR '\\'	/* directory separator character */
+#else
+	#define DIRSEP_CHAR '/'		/* directory separator character */
+#endif
 
 #define sDIMEN_MAX		  2		/* maximum number of array dimensions */
 #define sDEF_LITMAX		500		/* initial size of the literal pool, in "cells" */

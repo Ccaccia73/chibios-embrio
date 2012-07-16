@@ -159,11 +159,9 @@ int e_prefix_determine(char *argv0)
 				{
 					strncpy(_prefix_path, _exe_path, p - _exe_path);
 
-					printf("prefix path: %s\n",_prefix_path);
-
 					_prefix_path[p - _exe_path] = 0;
 
-					printf("prefix path: %s\n",_prefix_path);
+					// printf("prefix path: %s\n",_prefix_path);
 
 					/* bin and lib always together */
 #if (defined __MINGW32__) || (defined __MINGW64__)
@@ -172,6 +170,9 @@ int e_prefix_determine(char *argv0)
 					snprintf(buf, sizeof(buf), "%s/embryo-1.0.0-cc", _prefix_path);
 #endif
 					_prefix_path_bin = strdup(buf);
+
+					// printf("prefix path bin: %s\n",_prefix_path_bin);
+
 #if (defined __MINGW32__) || (defined __MINGW64__)
 					snprintf(buf, sizeof(buf), "%s\\embryo-1.0.0-lib", _prefix_path);
 #else
@@ -179,16 +180,28 @@ int e_prefix_determine(char *argv0)
 #endif
 					_prefix_path_lib = strdup(buf);
 
+					// printf("prefix path lib: %s\n",_prefix_path_lib);
+
 					/* check if AUTHORS file is there - then our guess is right */
 #if (defined __MINGW32__) || (defined __MINGW64__)
-					snprintf(buf, sizeof(buf), "%s\\"MAGIC_FILE, _prefix_path);
+					snprintf(buf, sizeof(buf), "%s\\"MAGIC_FILE, _prefix_path_bin);
 #else
-					snprintf(buf, sizeof(buf), "%s/"MAGIC_FILE, _prefix_path);
+					snprintf(buf, sizeof(buf), "%s/"MAGIC_FILE, _prefix_path_bin);
 #endif
-					if (stat(buf, &st) == 0)
-					{
-						snprintf(buf, sizeof(buf), "%s/"SHARE_D, _prefix_path);
+					// printf("magic file: %s\n",buf);
+
+					if (stat(buf, &st) == 0){
+						// printf("Look for default.inc OK!\n");
+						// snprintf(buf, sizeof(buf), "%s/"SHARE_D, _prefix_path);
+#if (defined __MINGW32__) || (defined __MINGW64__)
+						snprintf(buf, sizeof(buf), "%s", _prefix_path_bin);
+#else
+						snprintf(buf, sizeof(buf), "%s", _prefix_path_bin);
+#endif
 						_prefix_path_data = strdup(buf);
+
+						// printf("prefix path data: %s\n",_prefix_path_data);
+
 					}
 					/* AUTHORS file not there. time to start hunting! */
 					else
@@ -258,6 +271,8 @@ static int _e_prefix_share_hunt(void)
 {
 	char buf[4096], buf2[4096], *p;
 	struct stat st;
+
+	// printf("SHARE HUNT!!!!!!!!!\n\n");
 
 	/* sometimes this isn't the case - so we need to do a more exhaustive search
 	 * through more parent and subdirs. hre is an example i have seen:
@@ -439,54 +454,50 @@ static int _e_prefix_try_argv(char *argv0)
 {
 	char *path, *p, *cp, *s;
 	int len, lenexe;
-	char buf[4096], buf2[4096], buf3[4096];
+	char buf[4096]; // , buf2[4096], buf3[4096];
 
-	printf("Trying argv:\n");
-	printf("argv0 = %s\n",argv0);
+	// printf("Trying argv:\n");
+	// printf("argv0 = %s\n",argv0);
 
+	/* Edit: we try to find here the path of the file: we don't exactly know
+	 * how the compiler is called. Wee look for the name and then try to find
+	 * the path of the executable, by using realpath in Linux or _fullpath in
+	 * Windows.
+	 */
 
-	/* 1. is argv0 abs path? */
+	// build the absolute path
+
+	// printf("stringa argv0: %s\n",argv0);
+
 #if (defined __MINGW32__) || (defined __MINGW64__)
-	// we guess that the path is something like C:\...
-	if (argv0[1] == ':')
+	if( _fullpath(buf,argv0,PATH_MAX)){
+		p = strrchr(buf,'\\');
 #else
-	if (argv0[0] == '/')
+	if (realpath(argv0, buf)){
+		p = strrchr(buf,'/');
 #endif
-	{
-		_exe_path = strdup(argv0);
-		if (access(_exe_path, X_OK) == 0){
-			printf("\nFile is executable.\n");
-			return 1;
-		}
-		else{
-			perror ("The following error occurred: ");
-		}
-		free(_exe_path);
-		_exe_path = NULL;
-		return 0;
-	}
-	/* 2. relative path */
-	if (strchr(argv0, '/'))
-	{
-		if (getcwd(buf3, sizeof(buf3)))
-		{
-			snprintf(buf2, sizeof(buf2), "%s/%s", buf3, argv0);
-#if (defined __MINGW32__) || (defined __MINGW64__)
-			// printf("fullpath!!\n");
-			if( _fullpath(buf,buf2,PATH_MAX))
-#else
-			// printf("realpath!!\n");
-			if (realpath(buf2, buf))
-#endif
-			{
-				_exe_path = strdup(buf);
-				if (access(_exe_path, X_OK) == 0) return 1;
-				free(_exe_path);
-				_exe_path = NULL;
+		// printf("stringa: %s\n",buf);
+		if(p){
+			_exe_path = strdup(argv0);
+			if (access(_exe_path, X_OK) == 0){
+				// printf("\nFile is executable.\n");
+				return 1;
 			}
+			else{
+				perror ("The following error occurred: ");
+			}
+			free(_exe_path);
+			_exe_path = NULL;
+			return 0;
+		}else{
+			fprintf(stderr,"No directory symbol found!\n");
 		}
+	}else{
+		fprintf(stderr,"No real path found!\n");
 	}
+
 	/* 3. argv0 no path - look in PATH */
+	fprintf(stderr,"Looking in PATH: tbd!!!\n");
 	path = getenv("PATH");
 	if (!path) return 0;
 	p = path;

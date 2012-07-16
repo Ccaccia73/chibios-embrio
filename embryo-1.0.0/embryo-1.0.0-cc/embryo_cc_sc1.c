@@ -127,35 +127,17 @@ static char         binfname[PATH_MAX];	/* binary file name */
 
 int main(int argc, char *argv[], char *env[] )
 {
-	char	argv0[PATH_MAX];
-
-	snprintf(argv0, sizeof(argv0), "%s", argv[0]);
 	/* Linux stores the name of the program in argv[0], but not the path.
 	 * To adjust this, I store a string with the path in argv[0]. To do
 	 * so, I try to get the current path with getcwd(), and if that fails
 	 * I search for the PWD= setting in the environment.
 	 */
-#if !((defined __MINGW32__ ) || (defined __MINGW64__))
-	int		i;
-	if (getcwd(argv0, PATH_MAX))
-	{
-		// printf("Executing getcwd...\n");
-		// printf("argv0 = %s\n",argv0);
-		i = strlen(argv0);
-		snprintf(argv0 + i, sizeof(argv0) - i, "/%s", argv[0]);
-	}
-	else
-	{
-		char *pwd = getenv("PWD");
-		if (pwd){
 
-			snprintf(argv0, sizeof(argv0), "%s/%s", pwd, argv[0]);
-		}
-	}				/* if */
-#endif
-	argv[0] = argv0;		/* set location to new first parameter */
+	/* Edit: we go directly to the funciotn that looks for the name and the
+	 * path.
+	 */
 
-	e_prefix_determine(argv0);
+	e_prefix_determine(argv[0]);
 
 	return sc_compile(argc, argv);
 }
@@ -316,8 +298,13 @@ int sc_compile(int argc, char *argv[])
 	/* open the output file */
 
 #ifndef HAVE_EVIL
-	tmpdir = getenv("TMPDIR");
-	if (!tmpdir) tmpdir = "/tmp";
+	#if (defined __MINGW32__) || (defined __MINGW64__)
+		tmpdir = getenv("TMP");
+		if (!tmpdir) tmpdir = "C:\tmp";
+	#else
+		tmpdir = getenv("TMPDIR");
+		if (!tmpdir) tmpdir = "/tmp";
+#endif
 #else
 	tmpdir = (char *)evil_tmpdir_get();
 #endif /* ! HAVE_EVIL */
@@ -338,7 +325,9 @@ int sc_compile(int argc, char *argv[])
 		fprintf(stderr,"error: %s\n\n",strerror(errno));
 	}
 #endif
+	/// I don't believe it's useful: just adds exe dir/include
 	setconfig(argv[0]);		/* the path to the include files */
+
 	lcl_ctrlchar = sc_ctrlchar;
 	lcl_packstr = sc_packstr;
 	lcl_needsemicolon = sc_needsemicolon;
@@ -371,14 +360,11 @@ int sc_compile(int argc, char *argv[])
 	sc_status = statFIRST;
 	/* do the first pass through the file */
 	inpfmark = sc_getpossrc(inpf);
-	if (incfname[0] != '\0')
-	{
-		if (strcmp(incfname, sDEF_PREFIX) == 0)
-		{
+	if (incfname[0] != '\0'){
+		if (strcmp(incfname, sDEF_PREFIX) == 0){
 			plungefile(incfname, FALSE, TRUE);	/* parse "default.inc" */
 		}
-		else
-		{
+		else{
 			if (!plungequalifiedfile(incfname))	/* parse "prefix" include
 			 * file */
 				error(100, incfname);	/* cannot read from ... (fatal error) */
@@ -619,9 +605,21 @@ static void parseoptions(int argc, char **argv, char *iname, char *oname,
 	short outfile = 0;
 
 	/* use embryo include dir always */
+#if (defined __MINGW32__) || (defined __MINGW64__)
+	snprintf(str, sizeof(str), "%s\\include\\", e_prefix_data_get());
+#else
 	snprintf(str, sizeof(str), "%s/include/", e_prefix_data_get());
+#endif
+
+	// printf("Default include: %s\n",str);
+
 	insert_path(str);
+
+#if (defined __MINGW32__) || (defined __MINGW64__)
+	insert_path(".");
+#else
 	insert_path("./");
+#endif
 
 	/* A string listing valid short options letters. */
 	const char* const short_options = "c:i:o:S:h";
@@ -704,7 +702,11 @@ static void parseoptions(int argc, char **argv, char *iname, char *oname,
 		strcpy(oname,iname);
 
 		char *pExt = strrchr(oname,'.');
+#if (defined __MINGW32__) || (defined __MINGW64__)
+		char *pFile = strrchr(oname, '\\');
+#else
 		char *pFile = strrchr(oname, '/');
+#endif
 
 		if ( (pExt != NULL) && (pExt > pFile) ){
 			// file has an extension
@@ -743,6 +745,9 @@ static void setconfig(char *root)
 	int                 len;
 
 	/* add the default "include" directory */
+
+	// printf("Root: %s\n",root);
+
 	if (root)
 	{
 		/* path + filename (hopefully) */
@@ -766,6 +771,9 @@ static void setconfig(char *root)
 		len = strlen(path);
 		path[len] = DIRSEP_CHAR;
 		path[len + 1] = '\0';
+
+		// printf("Path: %s\n",path);
+
 		insert_path(path);
 	}				/* if */
 }

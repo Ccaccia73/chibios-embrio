@@ -151,8 +151,7 @@ void delete_aliastable(void) {
 /* ----- include paths list -------------------------------------- */
 static stringlist includepaths = { NULL, NULL }; /* directory list for include files */
 
-stringlist *
-insert_path(char *path) {
+stringlist * insert_path(char *path) {
 	stringlist *cur;
 
 	assert(path != NULL);
@@ -165,8 +164,7 @@ insert_path(char *path) {
 	return cur;
 }
 
-char *
-get_path(int index) {
+char * get_path(int index) {
 	stringlist *cur = includepaths.next;
 
 	while (cur && index-- > 0)

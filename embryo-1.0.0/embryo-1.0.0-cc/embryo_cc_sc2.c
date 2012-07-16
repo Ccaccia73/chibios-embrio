@@ -31,6 +31,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+
+#include <dirent.h>
+
 #include "embryo_cc_sc.h"
 #include "Embryo.h"
 
