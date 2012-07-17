@@ -9,6 +9,14 @@
 	#include "halconf.h"
 	#include "ch.h"
 	#include "hal.h"
+#else
+	#include <stdio.h>
+	#if ( defined __MINGW32__ ) || ( defined __MINGW64__ )
+		#include <windows.h>
+		#define sleep(seconds) Sleep((seconds)*1000)
+	#else
+		#include <unistd.h>
+	#endif
 #endif
 
 

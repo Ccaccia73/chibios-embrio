@@ -5,9 +5,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <fnmatch.h>
 
-#include <alloca.h>
+//	#include <fnmatch.h>
+
+
+#if !( (defined __MINGW32__) || (defined __MINGW64__) )
+	#include <alloca.h>
+#else
+	#include <malloc.h>
+#endif
 
 #include "Embryo.h"
 #include "embryo_private.h"
@@ -29,20 +35,25 @@
 
 /* exported string api */
 
-static Embryo_Cell
-_embryo_str_atoi(Embryo_Program *ep, Embryo_Cell *params)
+static Embryo_Cell _embryo_str_atoi(Embryo_Program *ep, Embryo_Cell *params)
 {
-   char *s1;
+	char *s1;
 
-   /* params[1] = str */
-   if (params[0] != (1 * sizeof(Embryo_Cell))) return 0;
-   STRGET(ep, s1, params[1]);
-   if (!s1) return 0;
-   return (Embryo_Cell)atoi(s1);
+	/* params[1] = str */
+	if (params[0] != (1 * sizeof(Embryo_Cell))){
+		return 0;
+	}
+
+	STRGET(ep, s1, params[1]);
+
+	if (!s1){
+		return 0;
+	}
+
+	return (Embryo_Cell)atoi(s1);
 }
 
-static Embryo_Cell
-_embryo_str_fnmatch(Embryo_Program *ep, Embryo_Cell *params)
+static Embryo_Cell _embryo_str_fnmatch(Embryo_Program *ep, Embryo_Cell *params)
 {
    char *s1, *s2;
 

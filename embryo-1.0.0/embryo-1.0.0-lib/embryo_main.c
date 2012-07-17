@@ -27,8 +27,7 @@ static int _embryo_init_count = 0;
  *          shut down.
  * @ingroup Embryo_Library_Group
  */
-EAPI int
-embryo_init(void)
+EAPI int embryo_init(void)
 {
    if (++_embryo_init_count != 1)
      return _embryo_init_count;
@@ -38,14 +37,14 @@ embryo_init(void)
    return _embryo_init_count;
 }
 
+
 /**
  * Shuts down the Embryo library.
  * @return  The number of times the library has been initialised without being
  *          shutdown.
  * @ingroup Embryo_Library_Group
  */
-EAPI int
-embryo_shutdown(void)
+EAPI int embryo_shutdown(void)
 {
    if (--_embryo_init_count != 0)
      return _embryo_init_count;
