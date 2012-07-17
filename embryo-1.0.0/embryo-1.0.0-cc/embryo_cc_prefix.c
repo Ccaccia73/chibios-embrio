@@ -34,6 +34,7 @@
 #endif
 
 #include "embryo_cc_prefix.h"
+#include "embryo_cc_sc.h"
 
 /* local subsystem functions */
 static int _e_prefix_share_hunt(void);
@@ -58,13 +59,11 @@ static char *_prefix_path_lib = NULL;
 #define E_FREE(p) { if (p) {free(p); p = NULL;} }
 
 /*#define PREFIX_CACHE_FILE 1*/
-#define SHARE_D "share/embryo"
-#if (defined __MINGW32__) || (defined __MINGW64__)
-#define MAGIC_FILE "include\\default.inc"
-#else
-#define MAGIC_FILE "include/default.inc"
-#endif
-#define MAGIC_DAT SHARE_D"/"MAGIC_FILE
+#define SHARE_D "share"DIRSEP_STR"embryo"
+
+#define MAGIC_FILE "include"DIRSEP_STR"default.inc"
+
+#define MAGIC_DAT SHARE_D DIRSEP_STR MAGIC_FILE
 
 /* externally accessible functions */
 int e_prefix_determine(char *argv0)
@@ -137,21 +136,13 @@ int e_prefix_determine(char *argv0)
 	 * data_dir   = /blah/whatever/share/enlightenment
 	 * lib_dir    = /blah/whatever/lib
 	 */
-#if (defined __MINGW32__) || (defined __MINGW64__)
-	p = strrchr(_exe_path, '\\');
-#else
-	p = strrchr(_exe_path, '/');
-#endif
+	p = strrchr(_exe_path, DIRSEP_CHAR);
 	if (p)
 	{
 		p--;
 		while (p >= _exe_path)
 		{
-#if (defined __MINGW32__) || (defined __MINGW64__)
-			if (*p == '\\')
-#else
-			if (*p == '/')
-#endif
+			if (*p == DIRSEP_CHAR)
 			{
 				_prefix_path = malloc(p - _exe_path + 1);
 
@@ -164,40 +155,28 @@ int e_prefix_determine(char *argv0)
 					// printf("prefix path: %s\n",_prefix_path);
 
 					/* bin and lib always together */
-#if (defined __MINGW32__) || (defined __MINGW64__)
-					snprintf(buf, sizeof(buf), "%s\\embryo-1.0.0-cc", _prefix_path);
-#else
-					snprintf(buf, sizeof(buf), "%s/embryo-1.0.0-cc", _prefix_path);
-#endif
+
+					snprintf(buf, sizeof(buf), "%s"DIRSEP_STR"embryo-1.0.0-cc", _prefix_path);
+
 					_prefix_path_bin = strdup(buf);
 
 					// printf("prefix path bin: %s\n",_prefix_path_bin);
 
-#if (defined __MINGW32__) || (defined __MINGW64__)
-					snprintf(buf, sizeof(buf), "%s\\embryo-1.0.0-lib", _prefix_path);
-#else
-					snprintf(buf, sizeof(buf), "%s/embryo-1.0.0-lib", _prefix_path);
-#endif
+					snprintf(buf, sizeof(buf), "%s"DIRSEP_STR"embryo-1.0.0-lib", _prefix_path);
+
 					_prefix_path_lib = strdup(buf);
 
 					// printf("prefix path lib: %s\n",_prefix_path_lib);
 
 					/* check if AUTHORS file is there - then our guess is right */
-#if (defined __MINGW32__) || (defined __MINGW64__)
-					snprintf(buf, sizeof(buf), "%s\\"MAGIC_FILE, _prefix_path_bin);
-#else
-					snprintf(buf, sizeof(buf), "%s/"MAGIC_FILE, _prefix_path_bin);
-#endif
-					// printf("magic file: %s\n",buf);
+					snprintf(buf, sizeof(buf), "%s"DIRSEP_STR MAGIC_FILE, _prefix_path_bin);
+					printf("magic file: %s\n",buf);
 
 					if (stat(buf, &st) == 0){
 						// printf("Look for default.inc OK!\n");
 						// snprintf(buf, sizeof(buf), "%s/"SHARE_D, _prefix_path);
-#if (defined __MINGW32__) || (defined __MINGW64__)
 						snprintf(buf, sizeof(buf), "%s", _prefix_path_bin);
-#else
-						snprintf(buf, sizeof(buf), "%s", _prefix_path_bin);
-#endif
+
 						_prefix_path_data = strdup(buf);
 
 						// printf("prefix path data: %s\n",_prefix_path_data);
@@ -471,10 +450,10 @@ static int _e_prefix_try_argv(char *argv0)
 
 #if (defined __MINGW32__) || (defined __MINGW64__)
 	if( _fullpath(buf,argv0,PATH_MAX)){
-		p = strrchr(buf,'\\');
+		p = strrchr(buf,DIRSEP_CHAR);
 #else
 	if (realpath(argv0, buf)){
-		p = strrchr(buf,'/');
+		p = strrchr(buf,DIRSEP_CHAR);
 #endif
 		// printf("stringa: %s\n",buf);
 		if(p){

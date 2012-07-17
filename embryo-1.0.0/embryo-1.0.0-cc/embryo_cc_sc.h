@@ -53,8 +53,10 @@
 
 #if (defined __MINGW32__) || (defined __MINGW64__)
 	#define DIRSEP_CHAR '\\'	/* directory separator character */
+	#define DIRSEP_STR "\\"	/* directory separator string */
 #else
 	#define DIRSEP_CHAR '/'		/* directory separator character */
+	#define DIRSEP_STR "/"		/* directory separator string */
 #endif
 
 #define sDIMEN_MAX		  2		/* maximum number of array dimensions */

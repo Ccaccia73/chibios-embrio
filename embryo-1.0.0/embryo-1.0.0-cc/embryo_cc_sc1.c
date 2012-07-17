@@ -605,21 +605,13 @@ static void parseoptions(int argc, char **argv, char *iname, char *oname,
 	short outfile = 0;
 
 	/* use embryo include dir always */
-#if (defined __MINGW32__) || (defined __MINGW64__)
-	snprintf(str, sizeof(str), "%s\\include\\", e_prefix_data_get());
-#else
-	snprintf(str, sizeof(str), "%s/include/", e_prefix_data_get());
-#endif
+	snprintf(str, sizeof(str), "%s"DIRSEP_STR"include"DIRSEP_STR, e_prefix_data_get());
 
 	// printf("Default include: %s\n",str);
 
 	insert_path(str);
 
-#if (defined __MINGW32__) || (defined __MINGW64__)
-	insert_path(".");
-#else
-	insert_path("./");
-#endif
+	insert_path("."DIRSEP_STR);
 
 	/* A string listing valid short options letters. */
 	const char* const short_options = "c:i:o:S:h";
@@ -702,11 +694,8 @@ static void parseoptions(int argc, char **argv, char *iname, char *oname,
 		strcpy(oname,iname);
 
 		char *pExt = strrchr(oname,'.');
-#if (defined __MINGW32__) || (defined __MINGW64__)
-		char *pFile = strrchr(oname, '\\');
-#else
-		char *pFile = strrchr(oname, '/');
-#endif
+
+		char *pFile = strrchr(oname, DIRSEP_CHAR);
 
 		if ( (pExt != NULL) && (pExt > pFile) ){
 			// file has an extension
