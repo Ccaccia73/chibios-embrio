@@ -76,6 +76,56 @@ stkitem popstk(void) {
 	return stack[stkidx];
 }
 
+void findincludepathfile(char *dir){
+
+	static char *extensions[] = { ".inc", ".sma", ".small" };
+	char buf[PATH_MAX];
+	DIR *actdir;
+	struct dirent *ent;
+	int i;
+	int n_ext = (int)(sizeof extensions / sizeof extensions[0]);
+
+	// printf("n of extensions: %d\n",n_ext);
+
+	// open directory
+	actdir = opendir(dir);
+	if (actdir != NULL) {
+
+		// read first dir entry
+		ent = readdir (actdir);
+		while ( ent != NULL ) {
+
+			// printf("Parsing object: %s\n",ent->d_name);
+
+			if(strcmp(ent->d_name,"default.inc") != 0){
+				// printf("NO default\n");
+				for (i = 0; i < n_ext; ++i) {
+					strcpy(buf,dir);
+					strcat(buf,ent->d_name);
+					if(strstr(ent->d_name,extensions[i]) != NULL ){
+						// printf("ext OK Dir+file: %s\n",buf);
+						plungequalifiedfile(buf);
+						break;
+					}else{
+						// printf("ext NO Dir+file: %s\n",buf);
+					}
+				}
+			}else{
+				// printf("DEFAULT\n");
+			}
+
+			// printf ("%s\n", ent->d_name);
+
+			ent = readdir (actdir);
+		}
+		closedir(actdir);
+	} else {
+		/* could not open directory */
+		perror ("Piposkij ");
+	}
+}
+
+
 int plungequalifiedfile(char *name) {
 	static char *extensions[] = { ".inc", ".sma", ".small" };
 	FILE *fp;

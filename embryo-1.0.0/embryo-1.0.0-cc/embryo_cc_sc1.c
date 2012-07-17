@@ -56,7 +56,9 @@ static void         setopt(int argc, char **argv,
 						   char *iname, char *oname,
 						   char *pname, char *rname);
 
+#ifdef _ORIGINAL_
 static void         setconfig(char *root);
+#endif
 static void         about(FILE *stream);
 static void         setconstants(void);
 static void         parse(void);
@@ -260,18 +262,19 @@ long sc_lengthbin(void *handle)
  */
 int sc_compile(int argc, char *argv[])
 {
-	int                 entry, i, jmpcode;
+	int			entry, i, k, jmpcode;
 #ifdef _ORIGINAL_
 	int fd_out;
 #endif
-	int                 retcode;
-	char                incfname[PATH_MAX];
-	char                reportname[PATH_MAX];
-	FILE               *binf;
-	void               *inpfmark;
-	char                lcl_ctrlchar;
-	int                 lcl_packstr, lcl_needsemicolon, lcl_tabsize;
-	char               *tmpdir;
+	int			retcode;
+	char		incfname[PATH_MAX];
+	char		reportname[PATH_MAX];
+	FILE		*binf;
+	void		*inpfmark;
+	char		lcl_ctrlchar;
+	int			lcl_packstr, lcl_needsemicolon, lcl_tabsize;
+	char		*tmpdir;
+	char		*tmpincdir;
 
 	/* set global variables to their initial value */
 	binf = NULL;
@@ -326,7 +329,8 @@ int sc_compile(int argc, char *argv[])
 	}
 #endif
 	/// I don't believe it's useful: just adds exe dir/include
-	setconfig(argv[0]);		/* the path to the include files */
+	// setconfig(argv[0]);		/* the path to the include files */
+	// setconfig(_exe_path);
 
 	lcl_ctrlchar = sc_ctrlchar;
 	lcl_packstr = sc_packstr;
@@ -358,18 +362,38 @@ int sc_compile(int argc, char *argv[])
 			fline++;		/* keep line number up to date */
 	skipinput = fline;
 	sc_status = statFIRST;
+
 	/* do the first pass through the file */
 	inpfmark = sc_getpossrc(inpf);
+
+	/* parsing include files:
+	 * first default.inc, then we look at files in "./include" and other
+	 * directories defined by user input
+	 */
+
+	// this should be always true, see "setopt" before
 	if (incfname[0] != '\0'){
 		if (strcmp(incfname, sDEF_PREFIX) == 0){
 			plungefile(incfname, FALSE, TRUE);	/* parse "default.inc" */
 		}
+	}
+#ifdef _ORIGINAL
 		else{
 			if (!plungequalifiedfile(incfname))	/* parse "prefix" include
 			 * file */
 				error(100, incfname);	/* cannot read from ... (fatal error) */
 		}			/* if */
 	}				/* if */
+#endif
+
+
+	// now we look for files in all the directories inserted in insert_path
+	for (k = 0; (tmpincdir = get_path(k)); k++) {
+		findincludepathfile(tmpincdir);
+	}
+
+
+
 	preprocess();		/* fetch first line */
 	parse();			/* process all input */
 
@@ -405,14 +429,19 @@ int sc_compile(int argc, char *argv[])
 	 * by resetglobals() */
 	writeleader();
 	setfile(inpfname, fnumber);
-	if (incfname[0] != '\0')
-	{
-		if (strcmp(incfname, sDEF_PREFIX) == 0)
+
+	// reparsing: changes as above
+	if (incfname[0] != '\0'){
+		if (strcmp(incfname, sDEF_PREFIX) == 0){
 			plungefile(incfname, FALSE, TRUE);	/* parse "default.inc" (again) */
-		else
-			plungequalifiedfile(incfname);	/* parse implicit include
-			 * file (again) */
-	}				/* if */
+		}
+	}
+
+	// now we look for files in all the directories inserted in insert_path
+	for (k = 0; (tmpincdir = get_path(k)); k++) {
+		findincludepathfile(tmpincdir);
+	}
+
 	preprocess();		/* fetch first line */
 	parse();			/* process all input */
 	/* inpf is already closed when readline() attempts to pop of a file */
@@ -604,21 +633,23 @@ static void parseoptions(int argc, char **argv, char *iname, char *oname,
 	short codefile = 0;
 	short outfile = 0;
 
+	// always insert local directory
+	insert_path("."DIRSEP_STR);
+
 	/* use embryo include dir always */
+
 	snprintf(str, sizeof(str), "%s"DIRSEP_STR"include"DIRSEP_STR, e_prefix_data_get());
 
 	// printf("Default include: %s\n",str);
 
 	insert_path(str);
 
-	insert_path("."DIRSEP_STR);
-
 	/* A string listing valid short options letters. */
 	const char* const short_options = "c:i:o:S:h";
 	/* An array describing valid long options. */
 	const struct option long_options[] = {
 		{ "code", 1, NULL, 'c' },
-		{ "input", 1, NULL, 'i' },
+		{ "include", 1, NULL, 'i' },
 		{ "output", 1, NULL, 'o' },
 		{ "size", 1, NULL, 'S' },
 		{ "help", 0, NULL, 'h' },
@@ -727,6 +758,7 @@ static void setopt(int argc, char **argv, char *iname, char *oname,
 		about(stderr);
 }
 
+#ifdef _ORIGINAL_
 static void setconfig(char *root)
 {
 	char                path[PATH_MAX];
@@ -761,11 +793,12 @@ static void setconfig(char *root)
 		path[len] = DIRSEP_CHAR;
 		path[len + 1] = '\0';
 
-		// printf("Path: %s\n",path);
+		printf("Path: %s\n",path);
 
 		insert_path(path);
 	}				/* if */
 }
+#endif
 
 static void about(FILE *stream)
 {

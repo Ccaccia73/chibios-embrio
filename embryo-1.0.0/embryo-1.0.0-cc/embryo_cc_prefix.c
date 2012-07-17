@@ -170,7 +170,7 @@ int e_prefix_determine(char *argv0)
 
 					/* check if AUTHORS file is there - then our guess is right */
 					snprintf(buf, sizeof(buf), "%s"DIRSEP_STR MAGIC_FILE, _prefix_path_bin);
-					printf("magic file: %s\n",buf);
+					// printf("magic file: %s\n",buf);
 
 					if (stat(buf, &st) == 0){
 						// printf("Look for default.inc OK!\n");
@@ -455,9 +455,9 @@ static int _e_prefix_try_argv(char *argv0)
 	if (realpath(argv0, buf)){
 		p = strrchr(buf,DIRSEP_CHAR);
 #endif
-		// printf("stringa: %s\n",buf);
+		// printf("Try argv - stringa: %s\n",buf);
 		if(p){
-			_exe_path = strdup(argv0);
+			_exe_path = strdup(buf);
 			if (access(_exe_path, X_OK) == 0){
 				// printf("\nFile is executable.\n");
 				return 1;

@@ -444,6 +444,7 @@ void pushstk(stkitem val);
 stkitem popstk(void);
 int plungequalifiedfile(char *name); /* explicit path included */
 int plungefile(char *name, int try_currentpath, int try_includepaths); /* search through "include" paths */
+void findincludepathfile(char *dir);
 void preprocess(void);
 void lexinit(void);
 int lex(cell * lexvalue, char **lexsym);
