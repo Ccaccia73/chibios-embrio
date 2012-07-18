@@ -39,7 +39,10 @@
 #define _CHCONF_H_
 
 /*===========================================================================*/
-/* Kernel parameters.                                                        */
+/**
+ * @name Kernel parameters and options
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -64,21 +67,6 @@
  */
 #if !defined(CH_TIME_QUANTUM) || defined(__DOXYGEN__)
 #define CH_TIME_QUANTUM                 20
-#endif
-
-/**
- * @brief   Nested locks.
- * @details If enabled then the use of nested @p chSysLock() / @p chSysUnlock()
- *          operations is allowed.<br>
- *          For performance and code size reasons the recommended setting
- *          is to leave this option disabled.<br>
- *          You may use this option if you need to merge ChibiOS/RT with
- *          external libraries that require nested lock/unlock operations.
- *
- * @note    The default is @p FALSE.
- */
-#if !defined(CH_USE_NESTED_LOCKS) || defined(__DOXYGEN__)
-#define CH_USE_NESTED_LOCKS             FALSE
 #endif
 
 /**
@@ -113,8 +101,13 @@
 #define CH_NO_IDLE_THREAD               FALSE
 #endif
 
+/** @} */
+
 /*===========================================================================*/
-/* Performance options.                                                      */
+/**
+ * @name Performance options
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -129,28 +122,13 @@
 #define CH_OPTIMIZE_SPEED               TRUE
 #endif
 
-/**
- * @brief   Exotic optimization.
- * @details If defined then a CPU register is used as storage for the global
- *          @p currp variable. Caching this variable in a register greatly
- *          improves both space and time OS efficiency. A side effect is that
- *          one less register has to be saved during the context switch
- *          resulting in lower RAM usage and faster context switch.
- *
- * @note    This option is only usable with the GCC compiler and is only useful
- *          on processors with many registers like ARM cores.
- * @note    If this option is enabled then ALL the libraries linked to the
- *          ChibiOS/RT code <b>must</b> be recompiled with the GCC option @p
- *          -ffixed-@<reg@>.
- * @note    This option must be enabled in the Makefile, it is listed here for
- *          documentation only.
- */
-#if defined(__DOXYGEN__)
-#define CH_CURRP_REGISTER_CACHE         "reg"
-#endif
+/** @} */
 
 /*===========================================================================*/
-/* Subsystem options.                                                        */
+/**
+ * @name Subsystem options
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -372,9 +350,25 @@
 #define CH_USE_DYNAMIC                  TRUE
 #endif
 
+/** @} */
+
 /*===========================================================================*/
-/* Debug options.                                                            */
+/**
+ * @name Debug options
+ * @{
+ */
 /*===========================================================================*/
+
+/**
+ * @brief   Debug option, system state check.
+ * @details If enabled the correct call protocol for system APIs is checked
+ *          at runtime.
+ *
+ * @note    The default is @p FALSE.
+ */
+#if !defined(CH_DBG_SYSTEM_STATE_CHECK) || defined(__DOXYGEN__)
+#define CH_DBG_SYSTEM_STATE_CHECK       FALSE
+#endif
 
 /**
  * @brief   Debug option, parameters checks.
@@ -449,8 +443,13 @@
 #define CH_DBG_THREADS_PROFILING        TRUE
 #endif
 
+/** @} */
+
 /*===========================================================================*/
-/* Kernel hooks.                                                             */
+/**
+ * @name Kernel hooks
+ * @{
+ */
 /*===========================================================================*/
 
 /**
@@ -466,7 +465,7 @@
  * @brief   Threads initialization hook.
  * @details User initialization code added to the @p chThdInit() API.
  *
- * @note    It is invoked from within @p chThdInit() and implicitily from all
+ * @note    It is invoked from within @p chThdInit() and implicitly from all
  *          the threads creation APIs.
  */
 #if !defined(THREAD_EXT_INIT_HOOK) || defined(__DOXYGEN__)
@@ -486,6 +485,16 @@
 #if !defined(THREAD_EXT_EXIT_HOOK) || defined(__DOXYGEN__)
 #define THREAD_EXT_EXIT_HOOK(tp) {                                          \
   /* Add threads finalization code here.*/                                  \
+}
+#endif
+
+/**
+ * @brief   Context switch hook.
+ * @details This hook is invoked just before switching between threads.
+ */
+#if !defined(THREAD_CONTEXT_SWITCH_HOOK) || defined(__DOXYGEN__)
+#define THREAD_CONTEXT_SWITCH_HOOK(ntp, otp) {                              \
+  /* System halt code here.*/                                               \
 }
 #endif
 
@@ -520,6 +529,8 @@
   /* System halt code here.*/                                               \
 }
 #endif
+
+/** @} */
 
 /*===========================================================================*/
 /* Port-specific settings (override port settings defaulted in chcore.h).    */

@@ -238,10 +238,10 @@ static msg_t Thread1(void *arg) {
   (void)arg;
   chRegSetThreadName("blinker");
   while (TRUE) {
-    palClearPad(IOPORT4, GPIOD_LED4);
-    chThdSleepMilliseconds(200);
-    palSetPad(IOPORT4, GPIOD_LED4);
-    chThdSleepMilliseconds(200);
+    palClearPad(GPIOC, GPIOC_LED_STATUS1);
+    chThdSleepMilliseconds(500);
+    palSetPad(GPIOC, GPIOC_LED_STATUS1);
+    chThdSleepMilliseconds(500);
   }
 
   return 0;
@@ -264,9 +264,9 @@ int main(void) {
   chSysInit();
 
   /*
-   * Activates the serial driver 1 using the driver  default configuration.
+   * Activates the serial driver 3 using the driver default configuration.
    */
-  sdStart(&SD1, NULL);
+  sdStart(&SD3, NULL);
 
   /*
    * Initializes the ADC driver 1.
