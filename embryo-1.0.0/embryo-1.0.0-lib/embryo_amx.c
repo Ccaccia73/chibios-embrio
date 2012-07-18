@@ -22,7 +22,7 @@
 
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -31,7 +31,7 @@
 #include <stddef.h>
 
 #ifdef HAVE_EVIL
-# include <Evil.h>
+	#include <Evil.h>
 #endif
 
 #include "Embryo.h"
@@ -69,34 +69,32 @@ _embryo_byte_swap_32(unsigned int *v)
 }
 #endif
 
-static int
-_embryo_native_call(Embryo_Program *ep, Embryo_Cell index, Embryo_Cell *result, Embryo_Cell *params)
+static int _embryo_native_call(Embryo_Program *ep, Embryo_Cell index, Embryo_Cell *result, Embryo_Cell *params)
 {
-   Embryo_Header    *hdr;
-   Embryo_Func_Stub *func_entry;
-   Embryo_Native     f;
+	Embryo_Header    *hdr;
+	Embryo_Func_Stub *func_entry;
+	Embryo_Native     f;
 
-   hdr = (Embryo_Header *)ep->base;
-   func_entry = GETENTRY(hdr, natives, index);
-   if ((func_entry->address <= 0) ||
-       (func_entry->address > ep->native_calls_size))
-     {
-	ep->error = EMBRYO_ERROR_CALLBACK;
+	hdr = (Embryo_Header *)ep->base;
+	func_entry = GETENTRY(hdr, natives, index);
+
+	if ((func_entry->address <= 0) || (func_entry->address > ep->native_calls_size)){
+		ep->error = EMBRYO_ERROR_CALLBACK;
+		return ep->error;
+	}
+
+	f = ep->native_calls[func_entry->address - 1];
+	if (!f)	{
+		ep->error = EMBRYO_ERROR_CALLBACK;
+		return ep->error;
+	}
+
+	ep->error = EMBRYO_ERROR_NONE;
+	*result = f(ep, params);
 	return ep->error;
-     }
-   f = ep->native_calls[func_entry->address - 1];
-   if (!f)
-     {
-	ep->error = EMBRYO_ERROR_CALLBACK;
-	return ep->error;
-     }
-   ep->error = EMBRYO_ERROR_NONE;
-   *result = f(ep, params);
-   return ep->error;
 }
 
-static int
-_embryo_func_get(Embryo_Program *ep, int index, char *funcname)
+static int _embryo_func_get(Embryo_Program *ep, int index, char *funcname)
 {
    Embryo_Header    *hdr;
    Embryo_Func_Stub *func;
@@ -254,8 +252,11 @@ embryo_program_new(void *data, int size)
    void *code_data;
 
    if (size < (int)sizeof(Embryo_Header)) return NULL;
+#ifdef _
 
+#else
    ep = calloc(1, sizeof(Embryo_Program));
+#endif
    if (!ep) return NULL;
 
    code_data = malloc(size);
