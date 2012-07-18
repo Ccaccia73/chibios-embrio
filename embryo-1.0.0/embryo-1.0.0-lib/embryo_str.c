@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 
-//	#include <fnmatch.h>
+#include <fnmatch.h>
 
 
 #if !( (defined __MINGW32__) || (defined __MINGW64__) )
