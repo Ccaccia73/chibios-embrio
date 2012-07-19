@@ -61,8 +61,8 @@ PROJECT = ch
 LDSCRIPT= ch.ld
 
 # Imported source files and paths
-CHIBIOS = ../ChibiOS_2.4.1
-#CHIBIOS = ../ChibiOS_2.2.7
+CHIBIOS = ../../ChibiOS_2.4.1
+#CHIBIOS = ../../ChibiOS_2.2.7
 
 #include $(CHIBIOS)/boards/HY-STM32_STM32F103V/board.mk
 include $(CHIBIOS)/boards/OLIMEX_STM32_P107/board.mk
