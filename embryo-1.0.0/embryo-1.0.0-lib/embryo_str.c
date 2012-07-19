@@ -7,8 +7,9 @@
 #include <string.h>
 #include <stddef.h>
 
-#include <fnmatch.h>
-
+#ifdef _ORIGINAL_
+	#include <fnmatch.h>
+#endif
 
 #if !( (defined __MINGW32__) || (defined __MINGW64__) )
 	#include <alloca.h>
@@ -54,6 +55,7 @@ static Embryo_Cell _embryo_str_atoi(Embryo_Program *ep, Embryo_Cell *params)
 	return (Embryo_Cell)atoi(s1);
 }
 
+#ifdef _ORIGINAL_
 static Embryo_Cell _embryo_str_fnmatch(Embryo_Program *ep, Embryo_Cell *params)
 {
    char *s1, *s2;
@@ -66,6 +68,7 @@ static Embryo_Cell _embryo_str_fnmatch(Embryo_Program *ep, Embryo_Cell *params)
    if ((!s1) || (!s2)) return -1;
    return (Embryo_Cell)fnmatch(s1, s2, 0);
 }
+#endif
 
 static Embryo_Cell
 _embryo_str_strcmp(Embryo_Program *ep, Embryo_Cell *params)
@@ -464,7 +467,9 @@ void
 _embryo_str_init(Embryo_Program *ep)
 {
    embryo_program_native_call_add(ep, "atoi",     _embryo_str_atoi);
+#ifdef _ORIGINAL_
    embryo_program_native_call_add(ep, "fnmatch",  _embryo_str_fnmatch);
+#endif
    embryo_program_native_call_add(ep, "strcmp",   _embryo_str_strcmp);
    embryo_program_native_call_add(ep, "strncmp",  _embryo_str_strncmp);
    embryo_program_native_call_add(ep, "strcpy",   _embryo_str_strcpy);

@@ -80,7 +80,8 @@ $(OBJSIMDIR):
 
 $(OBJSIMDIR)/%.o: %.c Embryo.h embryo_private.h
 	@echo ==== Compiling [$@] ====
-	$(CC) -c $(INCDIR) $(CFLAGS) $< -o $@
+#	$(CC) -c $(INCDIR) $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 	@echo
 
 
