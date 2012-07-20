@@ -43,8 +43,10 @@ static void _embryo_byte_swap_16 (unsigned short *v);
 static void _embryo_byte_swap_32 (unsigned int *v);
 #endif
 
+/*
 static int _embryo_native_call(Embryo_Program *ep, Embryo_Cell index,
 							   Embryo_Cell *result, Embryo_Cell *params);
+*/
 static int _embryo_func_get(Embryo_Program *ep, int index, char *funcname);
 
 static int _embryo_var_get(Embryo_Program *ep, int index, char *varname,
@@ -73,7 +75,7 @@ _embryo_byte_swap_32(unsigned int *v)
 }
 #endif
 
-static int _embryo_native_call(Embryo_Program *ep, Embryo_Cell index,
+/*static*/ int _embryo_native_call(Embryo_Program *ep, Embryo_Cell index,
 							   Embryo_Cell *result, Embryo_Cell *params)
 {
 	Embryo_Header *hdr;
@@ -238,11 +240,14 @@ static int _embryo_program_init(Embryo_Program *ep, void *code)
 		}
 	}
 	/* init native api for handling floating point - default in embryo */
+#ifndef _CHIBIOS_VM_
 	_embryo_args_init(ep);
 	_embryo_fp_init(ep);
 	_embryo_rand_init(ep);
 	_embryo_str_init(ep);
 	_embryo_time_init(ep);
+#endif
+	_embryo_printXXX_init(ep);
 	return 1;
 }
 
@@ -271,6 +276,8 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 	}
 
 #ifdef _CHIBIOS_VM_
+	// ep = (Embryo_Program*)chCoreAlloc(sizeof(Embryo_Program));
+	// memset(ep, 0, sizeof(Embryo_Program));
 	// Define a memory pool
 	ep =
 #else
@@ -615,25 +622,32 @@ EAPI void embryo_swap_32(unsigned int *v)
  * @return  The function if successful.  Otherwise, @c EMBRYO_FUNCTION_NONE.
  * @ingroup Embryo_Func_Group
  */
-EAPI Embryo_Function embryo_program_function_find(Embryo_Program *ep,
-												  const char *name)
+EAPI Embryo_Function
+embryo_program_function_find(Embryo_Program *ep, const char *name)
 {
 	int first, last, mid, result;
 	char pname[sNAMEMAX + 1];
 	Embryo_Header *hdr;
 
 	if (!ep){
+		DEBUG_PRINT(("No program!\n"));
 		return EMBRYO_FUNCTION_NONE;
 	}
 	hdr = (Embryo_Header *) ep->code;
 	last = NUMENTRIES(hdr, publics, natives) - 1;
 	first = 0;
 	/* binary search */
+	DEBUG_PRINT(("Start binary search...\n"));
+	DEBUG_PRINT(("first: %d\n",first));
+	DEBUG_PRINT(("last: %d\n",last));
+
 	while (first <= last) {
 		mid = (first + last) / 2;
 		if (_embryo_func_get(ep, mid, pname) == EMBRYO_ERROR_NONE){
+			DEBUG_PRINT(("Name found: %s.\n",pname));
 			result = strcmp(pname, name);
 		}else{
+			DEBUG_PRINT(("Error during function get.\n"));
 			return EMBRYO_FUNCTION_NONE;
 		}
 		/*	  result = -1;*/
@@ -646,6 +660,7 @@ EAPI Embryo_Function embryo_program_function_find(Embryo_Program *ep,
 			return mid;
 		}
 	}
+	DEBUG_PRINT(("Nothing found.\n"));
 	return EMBRYO_FUNCTION_NONE;
 }
 

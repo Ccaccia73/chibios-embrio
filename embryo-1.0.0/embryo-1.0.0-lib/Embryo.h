@@ -1,11 +1,17 @@
 #ifndef _EMBRYO_H
 #define _EMBRYO_H
 
+#ifdef _CHIBIOS_VM_
+	#define DEBUG_PRINT(_A)
+#else
+	#define DEBUG_PRINT(_A) printf _A
+#endif
+
 #ifdef EAPI
 	#undef EAPI
 #endif
 
-#define EAPI __attribute__ ((visibility("default")))
+#define EAPI // __attribute__ ((visibility("default")))
 /*
 #ifdef _WIN32
 	#ifdef EFL_EMBRYO_BUILD

@@ -1,85 +1,68 @@
-TESTLIB=libembryo_test.a
+EXE+=embryo_sim
+EXEDIR=./
 
-DEF_CHIBIOS_VM=_CHIBIOS_VM_
+###############################################################################
+
+EMBRYOLIB_INCLUDE = ../embryo-1.0.0-lib
+EMBRYOLIBDIR = $(EMBRYOLIB_INCLUDE)/simdir
+EMBRYOLIB=_embryo_sim
+
+###############################################################################
+
+INCDIR+= -I$(EMBRYOLIB_INCLUDE)
 
 CC=gcc
-AR=ar
 MKDIR=mkdir
 
 COMMONFLAGS = 
+CFLAGS+=-O2 -Wall -g3 $(INCDIR)
 
-ARFLAGS=rc
-
-#CFLAGS+=-c
-#CFLAGS+=$(COMMONFLAGS) -Wall -Werror
-CFLAGS+=-Wall -O2
+###############################################################################
 
 .DEFAULT_GOAL = all
 
-############################################################################
+###############################################################################
 
-EMBRYOLIBDIR = ../embryo-1.0.0-mod-lib
+OBJDIR = obj
+SRC = $(wildcard *.c)
+OBJ = $(addprefix $(OBJDIR)/, $(patsubst %.c, %.o, $(wildcard *.c)))
 
-CHIBIOS = ../ChibiOS_2.2.7
-CHIBIOS_EMBRIO = ../ChibiOS-Embrio
-BOARD=HY-STM32_STM32F103V
+LIBS+=-l$(EMBRYOLIB)
+LIBSINCLUDE+=-L$(EMBRYOLIBDIR)
 
-INCDIR+=-I$(CHIBIOS)/os/hal/include/
-INCDIR+=-I$(CHIBIOS)/os/hal/templates/
-INCDIR+=-I$(CHIBIOS)/os/hal/platform/STM32/
-INCDIR+=-I$(CHIBIOS)/os/kernel/include/
-INCDIR+=-I$(CHIBIOS)/os/ports/GCC/ARMCMx/
-INCDIR+=-I$(CHIBIOS)/os/ports/GCC/ARMCMx/STM32/
-INCDIR+=-I$(CHIBIOS)/os/various/
-INCDIR+=-I$(CHIBIOS)/test/
-INCDIR+=-I$(CHIBIOS)/boards/$(BOARD)/
-INCDIR+=-I$(CHIBIOS_EMBRIO)
+###############################################################################
 
-############################################################################
+all: $(OBJDIR) $(OBJDIR)/$(EXE)
 
-LIBDIR = testlib
-LIBSRC = $(notdir $(wildcard $(EMBRYOLIBDIR)/*.c))
-OBJS = $(addprefix $(LIBDIR)/, $(patsubst %.c, %.o, $(LIBSRC) ) )
-
-lib: $(LIBDIR) $(LIBDIR)/$(TESTLIB)
-#	@echo "lib sources"
-#	@echo $(LIBSRC)
-#	@echo "Objects"
-#	@echo $(OBJS)
-#	@echo "Done"
-
-$(LIBDIR):
-	$(MKDIR) $(LIBDIR)
+$(OBJDIR):
+	@echo ==== Making directory [$@] ====
+	$(MKDIR) $(OBJDIR)
 
 
-$(LIBDIR)/%.o: $(EMBRYOLIBDIR)/%.c $(EMBRYOLIBDIR)/Embryo.h $(EMBRYOLIBDIR)/embryo_private.h
+$(OBJDIR)/$(EXE): $(OBJ)
+	@echo -n "Building $@ ..."
+	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LIBS) $(LIBSINCLUDE)
+	mv $@ $(EXEDIR)
+	@echo "done."
+
+
+$(OBJDIR)/%.o: %.c  $(EMBRYOLIB_INCLUDE)/Embryo.h
 	@echo ==== Compiling [$@] ====
-	$(CC) -U$(DEF_CHIBIOS_VM) $(INCDIR) -c $(CFLAGS) $(INCDIR) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 	@echo
-	
 
-$(LIBDIR)/$(TESTLIB): $(OBJS)
-	@echo  ==== Building $@ ====
-	$(AR) $(ARFLAGS) $@ $(OBJS)
-	@echo "done."
-	
-#############################################################################
+###############################################################################
 
-.PHONY: all exe lib clean
+.PHONY: all clean
 
-############################################################################ 
-
-all: exe lib
-
-############################################################################ 
-
+###############################################################################
+ 
 clean:
-	@echo "removing $(LIBDIR)/$(TESTLIB)..."
-	rm -f $(LIBDIR)/$(TESTLIB)
+	@echo "removing $(EXE)..."
+	rm -f $(EXEDIR)$(EXE)
 	@echo "removing objects..."
-	rm -f $(LIBDIR)/*.o
-	rm -rf $(LIBDIR)
+	rm -f $(OBJDIR)/*.o
+	rm -rf $(OBJDIR)
 	@echo "done."
 
-
-############################################################################
+###############################################################################

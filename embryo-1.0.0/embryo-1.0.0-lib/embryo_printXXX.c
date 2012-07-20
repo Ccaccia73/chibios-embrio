@@ -52,18 +52,21 @@ static Embryo_Program *subscribed_ep;
 static Embryo_Cell
 _embryo_printXXX_printXXX(Embryo_Program *ep, Embryo_Cell *params)
 {
-   char *s;
+	char *s;
 
-   /* params[1] = str */
-   if (params[0] != (1 * sizeof(Embryo_Cell))) return -1;
-   STRGET(ep, s, params[1]);
+	/* params[1] = str */
+	if (params[0] != (1 * sizeof(Embryo_Cell))){
+		return -1;
+	}
+
+	STRGET(ep, s, params[1]);
 #ifdef _CHIBIOS_VM_
-   /// TODO : add print on serial port
-   // debug_printf("%s\n", s);
+	/// TODO : add print on serial port
+	// debug_printf("%s\n", s);
 #else
-   printf("%s\n", s);
+	printf("Stringa: %s\n", s);
 #endif
-   return 0;
+	return 0;
 }
 
 static Embryo_Cell
@@ -107,17 +110,18 @@ static const GPTConfig gpt1cfg = {
 };
 #endif
 
-void
-_embryo_printXXX_init(Embryo_Program *ep)
+void _embryo_printXXX_init(Embryo_Program *ep)
 {
 	subscribed_ep = ep;
 	embryo_program_native_call_add(ep, "printXXX", _embryo_printXXX_printXXX);
-    embryo_program_native_call_add(ep, "sleepXXX", _embryo_sleepXXX);
-    embryo_program_native_call_add(ep, "toggleXXX", _embryo_toggleXXX);
+	embryo_program_native_call_add(ep, "sleepXXX", _embryo_sleepXXX);
+	embryo_program_native_call_add(ep, "toggleXXX", _embryo_toggleXXX);
 #ifdef _CHIBIOS_VM_PIPPO_
 	if(embryo_program_function_find(ep, "@event") != EMBRYO_FUNCTION_NONE) {
 		gptStart(&GPTD1, &gpt1cfg);
 		subscribed_ep = ep;
-   }
+	}
 #endif
+
+DEBUG_PRINT(("printXXX registered\n"));
 }

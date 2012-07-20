@@ -255,8 +255,11 @@ struct _Embryo_Program
 #elif defined (__GNUC__) || (defined (__SUNPRO_C) && __SUNPRO_C >= 0x5100)
 # define EMBRYO_STRUCT_PACKED __attribute__((packed))
 #else
-# define EMBRYO_STRUCT_PACKED
+	// #define EMBRYO_STRUCT_PACKED
+	#define EMBRYO_STRUCT_PACKED __attribute__((packed))
 #endif
+
+
 
 struct _Embryo_Func_Stub
 {
@@ -266,23 +269,23 @@ struct _Embryo_Func_Stub
 
 struct _Embryo_Header
 {
-	unsigned int size; /* size of the "file" */
-	unsigned short magic; /* signature */
-	char file_version; /* file format version */
-	char ep_version; /* required version of the Embryo_Program */
+	unsigned int size;		/* size of the "file" */
+	unsigned short magic;	/* signature */
+	char file_version;		/* file format version */
+	char ep_version;		/* required version of the Embryo_Program */
 	short flags;
-	short defsize; /* size of a definition record */
-	int cod; /* initial value of COD - code block */
-	int dat; /* initial value of DAT - data block */
-	int hea; /* initial value of HEA - start of the heap */
-	int stp; /* initial value of STP - stack top */
-	int cip; /* initial value of CIP - the instruction pointer */
-	int publics; /* offset to the "public functions" table */
-	int natives; /* offset to the "native functions" table */
-	int libraries; /* offset to the table of libraries */
-	int pubvars; /* the "public variables" table */
-	int tags; /* the "public tagnames" table */
-	int nametable; /* name table, file version 7 only */
+	short defsize;			/* size of a definition record */
+	int cod;				/* initial value of COD - code block */
+	int dat;				/* initial value of DAT - data block */
+	int hea;				/* initial value of HEA - start of the heap */
+	int stp;				/* initial value of STP - stack top */
+	int cip;				/* initial value of CIP - the instruction pointer */
+	int publics;			/* offset to the "public functions" table */
+	int natives;			/* offset to the "native functions" table */
+	int libraries;			/* offset to the table of libraries */
+	int pubvars;			/* the "public variables" table */
+	int tags;				/* the "public tagnames" table */
+	int nametable;			/* name table, file version 7 only */
 } EMBRYO_STRUCT_PACKED;
 
 #if defined _MSC_VER || (defined (__SUNPRO_C) && __SUNPRO_C < 0x5100)
@@ -295,4 +298,7 @@ void _embryo_rand_init(Embryo_Program *ep);
 void _embryo_str_init(Embryo_Program *ep);
 void _embryo_time_init(Embryo_Program *ep);
 
+void _embryo_printXXX_init(Embryo_Program *ep);
+
+int _embryo_native_call(Embryo_Program *ep, Embryo_Cell index, Embryo_Cell *result, Embryo_Cell *params);
 #endif

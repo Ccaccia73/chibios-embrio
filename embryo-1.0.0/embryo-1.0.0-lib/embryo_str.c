@@ -463,25 +463,26 @@ _embryo_str_strrchr(Embryo_Program *ep, Embryo_Cell *params)
 
 /* functions used by the rest of embryo */
 
-void
-_embryo_str_init(Embryo_Program *ep)
+void _embryo_str_init(Embryo_Program *ep)
 {
-   embryo_program_native_call_add(ep, "atoi",     _embryo_str_atoi);
+	embryo_program_native_call_add(ep, "atoi",     _embryo_str_atoi);
 #ifdef _ORIGINAL_
-   embryo_program_native_call_add(ep, "fnmatch",  _embryo_str_fnmatch);
+	embryo_program_native_call_add(ep, "fnmatch",  _embryo_str_fnmatch);
 #endif
-   embryo_program_native_call_add(ep, "strcmp",   _embryo_str_strcmp);
-   embryo_program_native_call_add(ep, "strncmp",  _embryo_str_strncmp);
-   embryo_program_native_call_add(ep, "strcpy",   _embryo_str_strcpy);
-   embryo_program_native_call_add(ep, "strncpy",  _embryo_str_strncpy);
-   embryo_program_native_call_add(ep, "strlen",   _embryo_str_strlen);
-   embryo_program_native_call_add(ep, "strcat",   _embryo_str_strcat);
-   embryo_program_native_call_add(ep, "strncat",  _embryo_str_strncat);
-   embryo_program_native_call_add(ep, "strprep",  _embryo_str_strprep);
-   embryo_program_native_call_add(ep, "strnprep", _embryo_str_strnprep);
-   embryo_program_native_call_add(ep, "strcut",   _embryo_str_strcut);
-   embryo_program_native_call_add(ep, "snprintf", _embryo_str_snprintf);
-   embryo_program_native_call_add(ep, "strstr",   _embryo_str_strstr);
-   embryo_program_native_call_add(ep, "strchr",   _embryo_str_strchr);
-   embryo_program_native_call_add(ep, "strrchr",  _embryo_str_strrchr);
+	embryo_program_native_call_add(ep, "strcmp",   _embryo_str_strcmp);
+	embryo_program_native_call_add(ep, "strncmp",  _embryo_str_strncmp);
+	embryo_program_native_call_add(ep, "strcpy",   _embryo_str_strcpy);
+	embryo_program_native_call_add(ep, "strncpy",  _embryo_str_strncpy);
+	embryo_program_native_call_add(ep, "strlen",   _embryo_str_strlen);
+	embryo_program_native_call_add(ep, "strcat",   _embryo_str_strcat);
+	embryo_program_native_call_add(ep, "strncat",  _embryo_str_strncat);
+	embryo_program_native_call_add(ep, "strprep",  _embryo_str_strprep);
+	embryo_program_native_call_add(ep, "strnprep", _embryo_str_strnprep);
+	embryo_program_native_call_add(ep, "strcut",   _embryo_str_strcut);
+	embryo_program_native_call_add(ep, "snprintf", _embryo_str_snprintf);
+	embryo_program_native_call_add(ep, "strstr",   _embryo_str_strstr);
+	embryo_program_native_call_add(ep, "strchr",   _embryo_str_strchr);
+	embryo_program_native_call_add(ep, "strrchr",  _embryo_str_strrchr);
+
+	DEBUG_PRINT(("str_XXX() registered\n"));
 }
