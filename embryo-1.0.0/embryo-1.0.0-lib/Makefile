@@ -14,13 +14,14 @@ AR=ar
 MKDIR=mkdir
 
 COMMONFLAGS = -g -mcpu=cortex-m3 -mthumb
+SIMFLAGS = -g3
 #COMMONFLAGS = 
 
 ARFLAGS=rc
 
 #CFLAGS+=-c
 #CFLAGS+=$(COMMONFLAGS) -Wall -Werror
-CFLAGS+=-Wall -O2
+CFLAGS+=-Wall -O0
 
 .DEFAULT_GOAL = all
 
@@ -81,7 +82,7 @@ $(OBJSIMDIR):
 $(OBJSIMDIR)/%.o: %.c Embryo.h embryo_private.h
 	@echo ==== Compiling [$@] ====
 #	$(CC) -c $(INCDIR) $(CFLAGS) $< -o $@
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(SIMFLAGS) $< -o $@
 	@echo
 
 

@@ -15,7 +15,7 @@ CC=gcc
 MKDIR=mkdir
 
 COMMONFLAGS = 
-CFLAGS+=-O2 -Wall -g3 $(INCDIR)
+CFLAGS+=-O0 -Wall -g3 $(INCDIR)
 
 ###############################################################################
 
