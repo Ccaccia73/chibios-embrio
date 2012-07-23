@@ -28,6 +28,9 @@ embryo_cc.exe
 armdir/
 simdir/
 
+#embryo similator
+embryo_sim
+embryo_sim.exe
 
 #other
 .* !.gitignore
