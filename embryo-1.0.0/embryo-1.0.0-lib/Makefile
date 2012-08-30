@@ -27,7 +27,7 @@ CFLAGS+=-Wall -O0
 
 ############################################################################
 
-CHIBIOS = ../../../ChibiOS_2.4.1
+CHIBIOS = ../../../ChibiOS_2.4.2
 CHIBIOS_EMBRIO = ../../ChibiOS-EmbrIO
 #BOARD=HY-STM32_STM32F103V
 BOARD=OLIMEX_STM32_P107

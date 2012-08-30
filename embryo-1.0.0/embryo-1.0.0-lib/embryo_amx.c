@@ -36,6 +36,11 @@
 #include "Embryo.h"
 #include "embryo_private.h"
 
+#ifdef _CHIBIOS_VM_
+	#include "embrio.h"
+	#include "embrio_private.h"
+#endif
+
 #define JUMPABS(base, ip)     ((Embryo_Cell *)(code + (*ip)))
 
 #ifdef WORDS_BIGENDIAN
@@ -107,7 +112,13 @@ static int _embryo_func_get(Embryo_Program *ep, int index, char *funcname)
 	Embryo_Header *hdr;
 	Embryo_Func_Stub *func;
 
-	hdr = (Embryo_Header *) ep->code;
+	// XXX
+	if(ep->base){
+		hdr = (Embryo_Header *)ep->base;
+	}else{
+		hdr = (Embryo_Header *) ep->code;
+	}
+	
 	if (index >= (Embryo_Cell) NUMENTRIES(hdr, publics, natives))
 		return EMBRYO_ERROR_INDEX;
 
@@ -287,9 +298,15 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 	if (!ep){
 		return NULL ;
 	}
-
+	
+#ifdef _CHIBIOS_VM_
+	update
+	code_data = (void*)chCoreAlloc(size);
+#else
 	code_data = malloc(size);
-	if (!code_data) {
+#endif
+	if (!code_data)
+	{
 		free(ep);
 		return NULL ;
 	}
@@ -299,9 +316,12 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 	if (_embryo_program_init(ep, code_data)){
 		return ep;
 	}
-
+#ifdef _CHIBIOS_VM_
+	fixme;
+#else
 	free(code_data);
 	free(ep);
+#endif
 	return NULL ;
 }
 
@@ -393,6 +413,9 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
  * @ingroup Embryo_Program_Creation_Group
  */
 EAPI void embryo_program_free(Embryo_Program *ep) {
+#ifdef _CHIBIOS_VM_
+
+#else
 	int i;
 
 	if (ep->base){
@@ -404,6 +427,10 @@ EAPI void embryo_program_free(Embryo_Program *ep) {
 	if (ep->native_calls){
 		free(ep->native_calls);
 	}
+
+#if !(defined EMBRYO_PARAMS) && (defined _CHIBIOS_VM_)
+
+#else
 	for (i = 0; i < ep->params_size; i++) {
 		if (ep->params[i].string)
 			free(ep->params[i].string);
@@ -413,7 +440,9 @@ EAPI void embryo_program_free(Embryo_Program *ep) {
 	if (ep->params){
 		free(ep->params);
 	}
+#endif
 	free(ep);
+#endif
 }
 
 /**
@@ -429,8 +458,7 @@ EAPI void embryo_program_free(Embryo_Program *ep) {
  * @param   func The function to use when the call is made.
  * @ingroup Embryo_Func_Group
  */
-EAPI void embryo_program_native_call_add(Embryo_Program *ep, const char *name,
-				Embryo_Cell (*func)(Embryo_Program *ep, Embryo_Cell *params))
+EAPI void embryo_program_native_call_add(Embryo_Program *ep, const char *name, Embryo_Cell (*func)(Embryo_Program *ep, Embryo_Cell *params))
 {
 	Embryo_Func_Stub *func_entry;
 	Embryo_Header *hdr;
@@ -457,9 +485,14 @@ EAPI void embryo_program_native_call_add(Embryo_Program *ep, const char *name,
 		Embryo_Native *calls;
 
 		ep->native_calls_alloc += 32;
+#ifdef _CHIBIOS_VM_
+		calls = (Embryo_Native*)chCoreAlloc(ep->native_calls_alloc * sizeof(Embryo_Native));
+#else
 		calls = realloc(ep->native_calls,
 				ep->native_calls_alloc * sizeof(Embryo_Native));
-		if (!calls) {
+#endif
+		if (!calls)
+		{
 			ep->native_calls_size--;
 			ep->native_calls_alloc -= 32;
 			return;
@@ -549,8 +582,13 @@ EAPI void embryo_program_vm_push(Embryo_Program *ep)
 		return;
 	}
 	hdr = (Embryo_Header *) ep->code;
+#ifdef _CHIBIOS_VM_
+	ep->base = (void*)chCoreAlloc(hdr->stp);
+#else
 	ep->base = malloc(hdr->stp);
-	if (!ep->base) {
+#endif
+	if (!ep->base)
+	{
 		ep->pushes = 0;
 		return;
 	}
@@ -633,7 +671,12 @@ embryo_program_function_find(Embryo_Program *ep, const char *name)
 		DEBUG_PRINT(("No program!\n"));
 		return EMBRYO_FUNCTION_NONE;
 	}
-	hdr = (Embryo_Header *) ep->code;
+	// XXX
+	if(ep->base)
+		hdr = (Embryo_Header *)ep->base;
+	else
+		hdr = (Embryo_Header *) ep->code;
+
 	last = NUMENTRIES(hdr, publics, natives) - 1;
 	first = 0;
 	/* binary search */
@@ -681,8 +724,7 @@ embryo_program_function_find(Embryo_Program *ep, const char *name)
  *          otherwise.
  * @ingroup Embryo_Public_Variable_Group
  */
-EAPI Embryo_Cell embryo_program_variable_find(Embryo_Program *ep,
-		const char *name)
+EAPI Embryo_Cell embryo_program_variable_find(Embryo_Program *ep, const char *name)
 {
 	int first, last, mid, result;
 	char pname[sNAMEMAX + 1];
@@ -875,8 +917,7 @@ EAPI const char *embryo_error_string_get(Embryo_Error error)
  * @return  The length of the string.  @c 0 is returned if there is an error.
  * @ingroup Embryo_Data_String_Group
  */
-EAPI int embryo_data_string_length_get(Embryo_Program *ep,
-									   Embryo_Cell *str_cell)
+EAPI int embryo_data_string_length_get(Embryo_Program *ep, Embryo_Cell *str_cell)
 {
 	int len;
 	Embryo_Header *hdr;
@@ -899,8 +940,7 @@ EAPI int embryo_data_string_length_get(Embryo_Program *ep,
  * @param   dst      The given buffer.
  * @ingroup Embryo_Data_String_Group
  */
-EAPI void embryo_data_string_get(Embryo_Program *ep, Embryo_Cell *str_cell,
-								 char *dst)
+EAPI void embryo_data_string_get(Embryo_Program *ep, Embryo_Cell *str_cell, char *dst)
 {
 	int i;
 	Embryo_Header *hdr;
@@ -941,8 +981,7 @@ EAPI void embryo_data_string_get(Embryo_Program *ep, Embryo_Cell *str_cell,
  * @param str_cell Pointer to the first cell to copy the string to.
  * @ingroup Embryo_Data_String_Group
  */
-EAPI void embryo_data_string_set(Embryo_Program *ep, const char *src,
-								 Embryo_Cell *str_cell)
+EAPI void embryo_data_string_set(Embryo_Program *ep, const char *src, Embryo_Cell *str_cell)
 {
 	int i;
 	Embryo_Header *hdr;
@@ -1108,10 +1147,1166 @@ EAPI int embryo_program_recursion_get(Embryo_Program *ep)
  *          it is allowed to in abstract machine instruction count.
  * @ingroup Embryo_Run_Group
  */
-EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
+
+#ifdef _CHIBIOS_VM_
+EAPI Embryo_Status embryo_program_run(EmbrioVM *vmp, Embryo_Function fn)
 {
+	Embryo_Program   *ep = vmp->ep;
+	
 	Embryo_Header *hdr;
 	Embryo_Func_Stub *func;
+	
+//	unsigned char    *code, *data;
+//	Embryo_Cell      pri, alt, stk, frm, hea, hea_start;
+//	Embryo_Cell      reset_stk, reset_hea, *cip;
+	Embryo_UCell     codesize;
+	int              i;
+	unsigned char    op;
+	Embryo_Cell      offs;
+	int              num;
+	int              max_run_cycles;
+	int              cycle_count;
+#ifdef EMBRYO_EXEC_JUMPTABLE
+/* we limit the jumptable to 256 elements. why? above we forced "op" to be
+* a unsigned char - that means 256 max values. we limit opcode overflow
+* here, so eliminating crashes on table lookups with bad/corrupt bytecode.
+* no need to atuall do compares, branches etc. the datatype does the work
+* for us. so that means EXCESS elements are all declared as OP_NONE to
+* keep them innocuous.
+*/
+static const void *switchtable[256] =
+{
+	&&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_LOAD_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_LOAD_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_LOAD_S_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_LOAD_S_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_LREF_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_LREF_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_LREF_S_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_LREF_S_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_LOAD_I,
+		&&SWITCHTABLE_EMBRYO_OP_LODB_I,
+		&&SWITCHTABLE_EMBRYO_OP_CONST_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_CONST_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_ADDR_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_ADDR_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_STOR_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_STOR_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_STOR_S_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_STOR_S_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_SREF_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_SREF_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_SREF_S_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_SREF_S_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_STOR_I,
+		&&SWITCHTABLE_EMBRYO_OP_STRB_I,
+		&&SWITCHTABLE_EMBRYO_OP_LIDX,
+		&&SWITCHTABLE_EMBRYO_OP_LIDX_B,
+		&&SWITCHTABLE_EMBRYO_OP_IDXADDR,
+		&&SWITCHTABLE_EMBRYO_OP_IDXADDR_B,
+		&&SWITCHTABLE_EMBRYO_OP_ALIGN_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_ALIGN_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_LCTRL,
+		&&SWITCHTABLE_EMBRYO_OP_SCTRL,
+		&&SWITCHTABLE_EMBRYO_OP_MOVE_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_MOVE_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_XCHG,
+		&&SWITCHTABLE_EMBRYO_OP_PUSH_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_PUSH_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_PUSH_R,
+		&&SWITCHTABLE_EMBRYO_OP_PUSH_C,
+		&&SWITCHTABLE_EMBRYO_OP_PUSH,
+		&&SWITCHTABLE_EMBRYO_OP_PUSH_S,
+		&&SWITCHTABLE_EMBRYO_OP_POP_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_POP_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_STACK,
+		&&SWITCHTABLE_EMBRYO_OP_HEAP,
+		&&SWITCHTABLE_EMBRYO_OP_PROC,
+		&&SWITCHTABLE_EMBRYO_OP_RET,
+		&&SWITCHTABLE_EMBRYO_OP_RETN,
+		&&SWITCHTABLE_EMBRYO_OP_CALL,
+		&&SWITCHTABLE_EMBRYO_OP_CALL_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_JUMP,
+		&&SWITCHTABLE_EMBRYO_OP_JREL,
+		&&SWITCHTABLE_EMBRYO_OP_JZER,
+		&&SWITCHTABLE_EMBRYO_OP_JNZ,
+		&&SWITCHTABLE_EMBRYO_OP_JEQ,
+		&&SWITCHTABLE_EMBRYO_OP_JNEQ,
+		&&SWITCHTABLE_EMBRYO_OP_JLESS,
+		&&SWITCHTABLE_EMBRYO_OP_JLEQ,
+		&&SWITCHTABLE_EMBRYO_OP_JGRTR,
+		&&SWITCHTABLE_EMBRYO_OP_JGEQ,
+		&&SWITCHTABLE_EMBRYO_OP_JSLESS,
+		&&SWITCHTABLE_EMBRYO_OP_JSLEQ,
+		&&SWITCHTABLE_EMBRYO_OP_JSGRTR,
+		&&SWITCHTABLE_EMBRYO_OP_JSGEQ,
+		&&SWITCHTABLE_EMBRYO_OP_SHL,
+		&&SWITCHTABLE_EMBRYO_OP_SHR,
+		&&SWITCHTABLE_EMBRYO_OP_SSHR,
+		&&SWITCHTABLE_EMBRYO_OP_SHL_C_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_SHL_C_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_SHR_C_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_SHR_C_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_SMUL,
+		&&SWITCHTABLE_EMBRYO_OP_SDIV,
+		&&SWITCHTABLE_EMBRYO_OP_SDIV_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_UMUL,
+		&&SWITCHTABLE_EMBRYO_OP_UDIV,
+		&&SWITCHTABLE_EMBRYO_OP_UDIV_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_ADD,
+		&&SWITCHTABLE_EMBRYO_OP_SUB,
+		&&SWITCHTABLE_EMBRYO_OP_SUB_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_AND,
+		&&SWITCHTABLE_EMBRYO_OP_OR,
+		&&SWITCHTABLE_EMBRYO_OP_XOR,
+		&&SWITCHTABLE_EMBRYO_OP_NOT,
+		&&SWITCHTABLE_EMBRYO_OP_NEG,
+		&&SWITCHTABLE_EMBRYO_OP_INVERT,
+		&&SWITCHTABLE_EMBRYO_OP_ADD_C,
+		&&SWITCHTABLE_EMBRYO_OP_SMUL_C,
+		&&SWITCHTABLE_EMBRYO_OP_ZERO_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_ZERO_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_ZERO,
+		&&SWITCHTABLE_EMBRYO_OP_ZERO_S,
+		&&SWITCHTABLE_EMBRYO_OP_SIGN_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_SIGN_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_EQ,
+		&&SWITCHTABLE_EMBRYO_OP_NEQ,
+		&&SWITCHTABLE_EMBRYO_OP_LESS,
+		&&SWITCHTABLE_EMBRYO_OP_LEQ,
+		&&SWITCHTABLE_EMBRYO_OP_GRTR,
+		&&SWITCHTABLE_EMBRYO_OP_GEQ,
+		&&SWITCHTABLE_EMBRYO_OP_SLESS,
+		&&SWITCHTABLE_EMBRYO_OP_SLEQ,
+		&&SWITCHTABLE_EMBRYO_OP_SGRTR,
+		&&SWITCHTABLE_EMBRYO_OP_SGEQ,
+		&&SWITCHTABLE_EMBRYO_OP_EQ_C_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_EQ_C_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_INC_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_INC_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_INC,
+		&&SWITCHTABLE_EMBRYO_OP_INC_S,
+		&&SWITCHTABLE_EMBRYO_OP_INC_I,
+		&&SWITCHTABLE_EMBRYO_OP_DEC_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_DEC_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_DEC,
+		&&SWITCHTABLE_EMBRYO_OP_DEC_S,
+		&&SWITCHTABLE_EMBRYO_OP_DEC_I,
+		&&SWITCHTABLE_EMBRYO_OP_MOVS,
+		&&SWITCHTABLE_EMBRYO_OP_CMPS,
+		&&SWITCHTABLE_EMBRYO_OP_FILL,
+		&&SWITCHTABLE_EMBRYO_OP_HALT,
+		&&SWITCHTABLE_EMBRYO_OP_BOUNDS,
+		&&SWITCHTABLE_EMBRYO_OP_SYSREQ_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_SYSREQ_C,
+		&&SWITCHTABLE_EMBRYO_OP_FILE,
+		&&SWITCHTABLE_EMBRYO_OP_LINE,
+		&&SWITCHTABLE_EMBRYO_OP_SYMBOL,
+		&&SWITCHTABLE_EMBRYO_OP_SRANGE,
+		&&SWITCHTABLE_EMBRYO_OP_JUMP_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_SWITCH,
+		&&SWITCHTABLE_EMBRYO_OP_CASETBL,
+		&&SWITCHTABLE_EMBRYO_OP_SWAP_PRI,
+		&&SWITCHTABLE_EMBRYO_OP_SWAP_ALT,
+		&&SWITCHTABLE_EMBRYO_OP_PUSHADDR,
+		&&SWITCHTABLE_EMBRYO_OP_NOP,
+		&&SWITCHTABLE_EMBRYO_OP_SYSREQ_D,
+		&&SWITCHTABLE_EMBRYO_OP_SYMTAG,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE,
+		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE
+	};
+#endif
+	if (!ep) return EMBRYO_PROGRAM_FAIL;
+	if (!(ep->flags & EMBRYO_FLAG_RELOC))
+	{
+		ep->error = EMBRYO_ERROR_INIT;
+		return EMBRYO_PROGRAM_FAIL;
+	}
+	if (!ep->base)
+	{
+		ep->error = EMBRYO_ERROR_INIT;
+		return EMBRYO_PROGRAM_FAIL;
+	}
+	if (ep->run_count > 0)
+	{
+	/* return EMBRYO_PROGRAM_BUSY; */
+	/* FIXME: test C->vm->C->vm recursion more fully */
+	/* it seems to work... just fine!!! - strange! */
+	}
+
+/* set up the registers */
+	hdr = (Embryo_Header *)ep->base;
+	codesize = (Embryo_UCell)(hdr->dat - hdr->cod);
+	ep->code = ep->base + (int)hdr->cod;
+	ep->data = ep->base + (int)hdr->dat;
+	ep->hea_start = ep->hea;
+	ep->reset_stk = ep->stk;
+	ep->reset_hea = ep->hea;
+	ep->frm = ep->alt = ep->pri = 0;
+
+/* get the start address */
+	if (fn == EMBRYO_FUNCTION_MAIN)
+	{
+		if (hdr->cip < 0)
+		{
+			ep->error = EMBRYO_ERROR_INDEX;
+			return EMBRYO_PROGRAM_FAIL;
+		}
+		ep->cip = (Embryo_Cell *)(ep->code + (int)hdr->cip);
+	}
+	else if (fn == EMBRYO_FUNCTION_CONT)
+	{
+	/* all registers: pri, alt, frm, cip, hea, stk, reset_stk, reset_hea */
+		ep->cip = (Embryo_Cell *)(ep->code + (int)ep->cip);
+	}
+	else if (fn < 0)
+	{
+		ep->error = EMBRYO_ERROR_INDEX;
+		return EMBRYO_PROGRAM_FAIL;
+	}
+	else
+	{
+		if (fn >= (Embryo_Cell)NUMENTRIES(hdr, publics, natives))
+		{
+			ep->error = EMBRYO_ERROR_INDEX;
+			return EMBRYO_PROGRAM_FAIL;
+		}
+		func = GETENTRY(hdr, publics, fn);
+		ep->cip = (Embryo_Cell *)(ep->code + (int)func->address);
+	}
+/* check values just copied */
+	CHKSTACK();
+	CHKHEAP();
+
+#ifdef EMBRYO_PARAMS
+
+	if (fn != EMBRYO_FUNCTION_CONT)
+	{
+		int i;
+
+		for (i = ep->params_size - 1; i >= 0; i--)
+		{
+			Embryo_Param *pr;
+
+			pr = &(ep->params[i]);
+			if (pr->string)
+			{
+				int len;
+				Embryo_Cell ep_addr, *addr;
+
+				len = strlen(pr->string);
+				ep_addr = embryo_data_heap_push(ep, len + 1);
+				if (ep_addr == EMBRYO_CELL_NONE)
+				{
+					ep->error = EMBRYO_ERROR_HEAPLOW;
+					return EMBRYO_PROGRAM_FAIL;
+				}
+				addr = embryo_data_address_get(ep, ep_addr);
+				if (addr)
+					embryo_data_string_set(ep, pr->string, addr);
+				else
+				{
+					ep->error = EMBRYO_ERROR_HEAPLOW;
+					return EMBRYO_PROGRAM_FAIL;
+				}
+				PUSH(ep_addr);
+				free(pr->string);
+			}
+			else if (pr->cell_array)
+			{
+				int len;
+				Embryo_Cell ep_addr, *addr;
+
+				len = pr->cell_array_size;
+				ep_addr = embryo_data_heap_push(ep, len + 1);
+				if (ep_addr == EMBRYO_CELL_NONE)
+				{
+					ep->error = EMBRYO_ERROR_HEAPLOW;
+					return EMBRYO_PROGRAM_FAIL;
+				}
+				addr = embryo_data_address_get(ep, ep_addr);
+				if (addr)
+					memcpy(addr, pr->cell_array,
+					pr->cell_array_size * sizeof(Embryo_Cell));
+				else
+				{
+					ep->error = EMBRYO_ERROR_HEAPLOW;
+					return EMBRYO_PROGRAM_FAIL;
+				}
+				PUSH(ep_addr);
+				free(pr->cell_array);
+			}
+			else
+			{
+				PUSH(pr->cell);
+			}
+		}
+
+		PUSH(ep->params_size * sizeof(Embryo_Cell));
+		PUSH(0);
+		if (ep->params)
+		{
+			free(ep->params);
+			ep->params = NULL;
+		}
+		ep->params_size = ep->params_alloc = 0;
+	}
+
+#endif
+
+	/* check stack/heap before starting to run */
+	CHKMARGIN();
+
+	/* track recursion depth */
+	ep->run_count++;
+	
+//	max_run_cycles = ep->max_run_cycles;
+	/* start running */
+	for (cycle_count = 0;;)
+	{
+		if (vmp->hook != NULL) {
+			Embryo_Cell      pri, alt, stk, frm, hea, hea_start;
+			Embryo_Cell      reset_stk, reset_hea, *cip;
+
+			frm = ep->frm;
+			stk = ep->stk;
+			hea = ep->hea;
+			pri = ep->pri;
+			alt = ep->alt;
+//			cip = (Embryo_Cell *)(code + (int)ep->cip);
+			cip = (Embryo_Cell *) ep->cip;
+
+			vmp->hook(vmp);
+
+//			ep->cip = (Embryo_Cell)((unsigned char *)cip - code);
+			ep->cip = (Embryo_Cell *) cip;
+			ep->hea = hea;
+			ep->frm = frm;
+			ep->stk = stk;
+            ep->pri = pri;
+            ep->alt = alt;
+
+/*
+			frm = ep->frm;
+			stk = ep->stk;
+			hea = ep->hea;
+			pri = ep->pri;
+			alt = ep->alt;
+//			cip = (Embryo_Cell *)(code + (int)ep->cip);
+			cip = (Embryo_Cell *) ep->cip;
+*/
+		}
+
+		op = (Embryo_Opcode)*((ep)->cip++);
+//		debug_printf("%d\n", op);
+		SWITCH(op);
+		CASE(EMBRYO_OP_LOAD_PRI);
+		GETPARAM(offs);
+		ep->pri = *(Embryo_Cell *)(ep->data + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LOAD_ALT);
+		GETPARAM(offs);
+		ep->alt = *(Embryo_Cell *)(ep->data + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LOAD_S_PRI);
+		GETPARAM(offs);
+		ep->pri = *(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LOAD_S_ALT);
+		GETPARAM(offs);
+		ep->alt = *(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LREF_PRI);
+		GETPARAM(offs);
+		offs = *(Embryo_Cell *)(ep->data + (int)offs);
+		ep->pri = *(Embryo_Cell *)(ep->data + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LREF_ALT);
+		GETPARAM(offs);
+		offs = *(Embryo_Cell *)(ep->data + (int)offs);
+		ep->alt = *(Embryo_Cell *)(ep->data + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LREF_S_PRI);
+		GETPARAM(offs);
+		offs = *(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs);
+		ep->pri = *(Embryo_Cell *)(ep->data + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LREF_S_ALT);
+		GETPARAM(offs);
+		offs = *(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs);
+		ep->alt = *(Embryo_Cell *)(ep->data + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LOAD_I);
+		CHKMEM(ep->pri);
+		ep->pri = *(Embryo_Cell *)(ep->data + (int)ep->pri);
+		BREAK;
+		CASE(EMBRYO_OP_LODB_I);
+		GETPARAM(offs);
+		CHKMEM(ep->pri);
+		switch (offs)
+		{
+			case 1:
+			ep->pri = *(ep->data + (int)ep->pri);
+			break;
+			case 2:
+			ep->pri = *(unsigned short *)(ep->data + (int)ep->pri);
+			break;
+			case 4:
+			ep->pri = *(unsigned int *)(ep->data + (int)ep->pri);
+			break;
+			default:
+			ABORT(ep, EMBRYO_ERROR_INVINSTR);
+			break;
+		}
+		BREAK;
+		CASE(EMBRYO_OP_CONST_PRI);
+		GETPARAM(ep->pri);
+		BREAK;
+		CASE(EMBRYO_OP_CONST_ALT);
+		GETPARAM(ep->alt);
+		BREAK;
+		CASE(EMBRYO_OP_ADDR_PRI);
+		GETPARAM(ep->pri);
+		ep->pri += ep->frm;
+		BREAK;
+		CASE(EMBRYO_OP_ADDR_ALT);
+		GETPARAM(ep->alt);
+		ep->alt += ep->frm;
+		BREAK;
+		CASE(EMBRYO_OP_STOR_PRI);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) = ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_STOR_ALT);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) = ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_STOR_S_PRI);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs) = ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_STOR_S_ALT);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs) = ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_SREF_PRI);
+		GETPARAM(offs);
+		offs = *(Embryo_Cell *)(ep->data + (int)offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) = ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_SREF_ALT);
+		GETPARAM(offs);
+		offs = *(Embryo_Cell *)(ep->data + (int)offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) = ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_SREF_S_PRI);
+		GETPARAM(offs);
+		offs = *(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) = ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_SREF_S_ALT);
+		GETPARAM(offs);
+		offs = *(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) = ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_STOR_I);
+		CHKMEM(ep->alt);
+		*(Embryo_Cell *)(ep->data + (int)ep->alt) = ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_STRB_I);
+		GETPARAM(offs);
+		CHKMEM(ep->alt);
+		switch (offs)
+		{
+			case 1:
+			*(ep->data + (int)ep->alt) = (unsigned char)ep->pri;
+			break;
+			case 2:
+			*(unsigned short *)(ep->data + (int)ep->alt) = (unsigned short)ep->pri;
+			break;
+			case 4:
+			*(unsigned int *)(ep->data + (int)ep->alt) = (unsigned int)ep->pri;
+			break;
+			default:
+			ABORT(ep, EMBRYO_ERROR_INVINSTR);
+			break;
+		}
+		BREAK;
+		CASE(EMBRYO_OP_LIDX);
+		offs = (ep->pri * sizeof(Embryo_Cell)) + ep->alt;
+		CHKMEM(offs);
+		ep->pri = *(Embryo_Cell *)(ep->data + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_LIDX_B);
+		GETPARAM(offs);
+		offs = (ep->pri << (int)offs) + ep->alt;
+		CHKMEM(offs);
+		ep->pri = *(Embryo_Cell *)(ep->data + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_IDXADDR);
+		ep->pri = (ep->pri * sizeof(Embryo_Cell)) + ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_IDXADDR_B);
+		GETPARAM(offs);
+		ep->pri = (ep->pri << (int)offs) + ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_ALIGN_PRI);
+		GETPARAM(offs);
+#ifdef WORDS_BIGENDIAN
+		if ((size_t)offs < sizeof(Embryo_Cell))
+			ep->pri ^= sizeof(Embryo_Cell) - offs;
+#endif
+		BREAK;
+		CASE(EMBRYO_OP_ALIGN_ALT);
+		GETPARAM(offs);
+#ifdef WORDS_BIGENDIAN
+		if ((size_t)offs < sizeof(Embryo_Cell))
+			ep->alt ^= sizeof(Embryo_Cell) - offs;
+#endif
+		BREAK;
+		CASE(EMBRYO_OP_LCTRL);
+		GETPARAM(offs);
+		switch (offs)
+		{
+			case 0:
+			ep->pri = hdr->cod;
+			break;
+			case 1:
+			ep->pri = hdr->dat;
+			break;
+			case 2:
+			ep->pri = ep->hea;
+			break;
+			case 3:
+			ep->pri = ep->stp;
+			break;
+			case 4:
+			ep->pri = ep->stk;
+			break;
+			case 5:
+			ep->pri = ep->frm;
+			break;
+			case 6:
+			ep->pri = (Embryo_Cell)((unsigned char *)ep->cip - ep->code);
+			break;
+			default:
+			ABORT(ep, EMBRYO_ERROR_INVINSTR);
+			break;
+		}
+		BREAK;
+		CASE(EMBRYO_OP_SCTRL);
+		GETPARAM(offs);
+		switch (offs)
+		{
+			case 0:
+			case 1:
+			case 2:
+			ep->hea = ep->pri;
+			break;
+			case 3:
+			/* cannot change these parameters */
+			break;
+			case 4:
+			ep->stk = ep->pri;
+			break;
+			case 5:
+			ep->frm = ep->pri;
+			break;
+			case 6:
+			ep->cip = (Embryo_Cell *)(ep->code + (int)ep->pri);
+			break;
+			default:
+			ABORT(ep, EMBRYO_ERROR_INVINSTR);
+			break;
+		}
+		BREAK;
+		CASE(EMBRYO_OP_MOVE_PRI);
+		ep->pri = ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_MOVE_ALT);
+		ep->alt = ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_XCHG);
+		offs = ep->pri;         /* offs is a temporary variable */
+		ep->pri = ep->alt;
+		ep->alt = offs;
+		BREAK;
+		CASE(EMBRYO_OP_PUSH_PRI);
+		PUSH(ep->pri);
+		BREAK;
+		CASE(EMBRYO_OP_PUSH_ALT);
+		PUSH(ep->alt);
+		BREAK;
+		CASE(EMBRYO_OP_PUSH_C);
+		GETPARAM(offs);
+		PUSH(offs);
+		BREAK;
+		CASE(EMBRYO_OP_PUSH_R);
+		GETPARAM(offs);
+		while (offs--) PUSH(ep->pri);
+		BREAK;
+		CASE(EMBRYO_OP_PUSH);
+		GETPARAM(offs);
+		PUSH(*(Embryo_Cell *)(ep->data + (int)offs));
+		BREAK;
+		CASE(EMBRYO_OP_PUSH_S);
+		GETPARAM(offs);
+		PUSH(*(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs));
+		BREAK;
+		CASE(EMBRYO_OP_POP_PRI);
+		POP(ep->pri);
+		BREAK;
+		CASE(EMBRYO_OP_POP_ALT);
+		POP(ep->alt);
+		BREAK;
+		CASE(EMBRYO_OP_STACK);
+		GETPARAM(offs);
+		ep->alt = ep->stk;
+		ep->stk += offs;
+		CHKMARGIN();
+		CHKSTACK();
+		BREAK;
+		CASE(EMBRYO_OP_HEAP);
+		GETPARAM(offs);
+		ep->alt = ep->hea;
+		ep->hea += offs;
+		CHKMARGIN();
+		CHKHEAP();
+		BREAK;
+		CASE(EMBRYO_OP_PROC);
+		PUSH(ep->frm);
+		ep->frm = ep->stk;
+		CHKMARGIN();
+		BREAK;
+		CASE(EMBRYO_OP_RET);
+		POP(ep->frm);
+		POP(offs);
+		if ((Embryo_UCell)offs >= codesize)
+			ABORT(ep, EMBRYO_ERROR_MEMACCESS);
+		ep->cip = (Embryo_Cell *)(ep->code + (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_RETN);
+		POP(ep->frm);
+		POP(offs);
+		if ((Embryo_UCell)offs >= codesize)
+			ABORT(ep, EMBRYO_ERROR_MEMACCESS);
+		ep->cip = (Embryo_Cell *)(ep->code + (int)offs);
+		ep->stk += *(Embryo_Cell *)(ep->data + (int)ep->stk) + sizeof(Embryo_Cell); /* remove parameters from the stack */
+//		ep->stk = stk;
+		BREAK;
+		CASE(EMBRYO_OP_CALL);
+		PUSH(((unsigned char *)ep->cip - ep->code) + sizeof(Embryo_Cell));/* skip address */
+		ep->cip = JUMPABS(ep->code, ep->cip); /* jump to the address */
+		BREAK;
+		CASE(EMBRYO_OP_CALL_PRI);
+		PUSH((unsigned char *)ep->cip - ep->code);
+		ep->cip = (Embryo_Cell *)(ep->code + (int)ep->pri);
+		BREAK;
+		CASE(EMBRYO_OP_JUMP);
+		/* since the GETPARAM() macro modifies cip, you cannot
+		* do GETPARAM(cip) directly */
+		ep->cip = JUMPABS(ep->code, ep->cip);
+		BREAK;
+		CASE(EMBRYO_OP_JREL);
+		offs = *(ep->cip);
+		ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + (int)offs + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JZER);
+		if (ep->pri == 0)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JNZ);
+		if (ep->pri != 0)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JEQ);
+		if (ep->pri==ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JNEQ);
+		if (ep->pri != ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JLESS);
+		if ((Embryo_UCell)ep->pri < (Embryo_UCell)ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JLEQ);
+		if ((Embryo_UCell)ep->pri <= (Embryo_UCell)ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JGRTR);
+		if ((Embryo_UCell)ep->pri > (Embryo_UCell)ep->alt)
+			ep->cip = JUMPABS(code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JGEQ);
+		if ((Embryo_UCell)ep->pri >= (Embryo_UCell)ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JSLESS);
+		if (ep->pri < ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JSLEQ);
+		if (ep->pri <= ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JSGRTR);
+		if (ep->pri > ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_JSGEQ);
+		if (ep->pri >= ep->alt)
+			ep->cip = JUMPABS(ep->code, ep->cip);
+		else
+			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
+		BREAK;
+		CASE(EMBRYO_OP_SHL);
+		ep->pri <<= ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_SHR);
+		ep->pri = (Embryo_UCell)ep->pri >> (int)ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_SSHR);
+		ep->pri >>= ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_SHL_C_PRI);
+		GETPARAM(offs);
+		ep->pri <<= offs;
+		BREAK;
+		CASE(EMBRYO_OP_SHL_C_ALT);
+		GETPARAM(offs);
+		ep->alt <<= offs;
+		BREAK;
+		CASE(EMBRYO_OP_SHR_C_PRI);
+		GETPARAM(offs);
+		ep->pri = (Embryo_UCell)ep->pri >> (int)offs;
+		BREAK;
+		CASE(EMBRYO_OP_SHR_C_ALT);
+		GETPARAM(offs);
+		ep->alt = (Embryo_UCell)ep->alt >> (int)offs;
+		BREAK;
+		CASE(EMBRYO_OP_SMUL);
+		ep->pri *= ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_SDIV);
+		if (ep->alt == 0) ABORT(ep, EMBRYO_ERROR_DIVIDE);
+		/* divide must always round down; this is a bit
+		* involved to do in a machine-independent way.
+		*/
+			offs = ((ep->pri % ep->alt) + ep->alt) % ep->alt; /* true modulus */
+		ep->pri = (ep->pri - offs) / ep->alt;         /* division result */
+		ep->alt = offs;
+		BREAK;
+		CASE(EMBRYO_OP_SDIV_ALT);
+		if (ep->pri == 0) ABORT(ep, EMBRYO_ERROR_DIVIDE);
+		/* divide must always round down; this is a bit
+		* involved to do in a machine-independent way.
+		*/
+			offs = ((ep->alt % ep->pri) + ep->pri) % ep->pri; /* true modulus */
+		ep->pri = (ep->alt - offs) / ep->pri;         /* division result */
+		ep->alt = offs;
+		BREAK;
+		CASE(EMBRYO_OP_UMUL);
+		ep->pri = (Embryo_UCell)ep->pri * (Embryo_UCell)ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_UDIV);
+		if (ep->alt == 0) ABORT(ep, EMBRYO_ERROR_DIVIDE);
+		offs = (Embryo_UCell)ep->pri % (Embryo_UCell)ep->alt; /* temporary storage */
+		ep->pri = (Embryo_UCell)ep->pri / (Embryo_UCell)ep->alt;
+		ep->alt = offs;
+		BREAK;
+		CASE(EMBRYO_OP_UDIV_ALT);
+		if (ep->pri == 0) ABORT(ep, EMBRYO_ERROR_DIVIDE);
+		offs = (Embryo_UCell)ep->alt % (Embryo_UCell)ep->pri; /* temporary storage */
+		ep->pri = (Embryo_UCell)ep->alt / (Embryo_UCell)ep->pri;
+		ep->alt = offs;
+		BREAK;
+		CASE(EMBRYO_OP_ADD);
+		ep->pri += ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_SUB);
+		ep->pri -= ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_SUB_ALT);
+		ep->pri = ep->alt - ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_AND);
+		ep->pri &= ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_OR);
+		ep->pri |= ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_XOR);
+		ep->pri ^= ep->alt;
+		BREAK;
+		CASE(EMBRYO_OP_NOT);
+		ep->pri = !ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_NEG);
+		ep->pri = -ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_INVERT);
+		ep->pri = ~ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_ADD_C);
+		GETPARAM(offs);
+		ep->pri += offs;
+		BREAK;
+		CASE(EMBRYO_OP_SMUL_C);
+		GETPARAM(offs);
+		ep->pri *= offs;
+		BREAK;
+		CASE(EMBRYO_OP_ZERO_PRI);
+		ep->pri = 0;
+		BREAK;
+		CASE(EMBRYO_OP_ZERO_ALT);
+		ep->alt = 0;
+		BREAK;
+		CASE(EMBRYO_OP_ZERO);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) = 0;
+		BREAK;
+		CASE(EMBRYO_OP_ZERO_S);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs) = 0;
+		BREAK;
+		CASE(EMBRYO_OP_SIGN_PRI);
+		if ((ep->pri & 0xff) >= 0x80) ep->pri |= ~(Embryo_UCell)0xff;
+		BREAK;
+		CASE(EMBRYO_OP_SIGN_ALT);
+		if ((ep->alt & 0xff) >= 0x80) ep->alt |= ~(Embryo_UCell)0xff;
+		BREAK;
+		CASE(EMBRYO_OP_EQ);
+		ep->pri = (ep->pri == ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_NEQ);
+		ep->pri = (ep->pri != ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_LESS);
+		ep->pri = ((Embryo_UCell)ep->pri < (Embryo_UCell)ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_LEQ);
+		ep->pri = ((Embryo_UCell)ep->pri <= (Embryo_UCell)ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_GRTR);
+		ep->pri = ((Embryo_UCell)ep->pri > (Embryo_UCell)ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_GEQ);
+		ep->pri = ((Embryo_UCell)ep->pri >= (Embryo_UCell)ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_SLESS);
+		ep->pri = (ep->pri < ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_SLEQ);
+		ep->pri = (ep->pri <= ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_SGRTR);
+		ep->pri = (ep->pri > ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_SGEQ);
+		ep->pri = (ep->pri >= ep->alt) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_EQ_C_PRI);
+		GETPARAM(offs);
+		ep->pri = (ep->pri == offs) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_EQ_C_ALT);
+		GETPARAM(offs);
+		ep->pri = (ep->alt == offs) ? 1 : 0;
+		BREAK;
+		CASE(EMBRYO_OP_INC_PRI);
+		ep->pri++;
+		BREAK;
+		CASE(EMBRYO_OP_INC_ALT);
+		ep->alt++;
+		BREAK;
+		CASE(EMBRYO_OP_INC);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) += 1;
+		BREAK;
+		CASE(EMBRYO_OP_INC_S);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs) += 1;
+		BREAK;
+		CASE(EMBRYO_OP_INC_I);
+		*(Embryo_Cell *)(ep->data + (int)ep->pri) += 1;
+		BREAK;
+		CASE(EMBRYO_OP_DEC_PRI);
+		ep->pri--;
+		BREAK;
+		CASE(EMBRYO_OP_DEC_ALT);
+		ep->alt--;
+		BREAK;
+		CASE(EMBRYO_OP_DEC);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)offs) -= 1;
+		BREAK;
+		CASE(EMBRYO_OP_DEC_S);
+		GETPARAM(offs);
+		*(Embryo_Cell *)(ep->data + (int)ep->frm + (int)offs) -= 1;
+		BREAK;
+		CASE(EMBRYO_OP_DEC_I);
+		*(Embryo_Cell *)(ep->data + (int)ep->pri) -= 1;
+		BREAK;
+		CASE(EMBRYO_OP_MOVS);
+		GETPARAM(offs);
+		CHKMEM(ep->pri);
+		CHKMEM(ep->pri + offs);
+		CHKMEM(ep->alt);
+		CHKMEM(ep->alt + offs);
+		memcpy(ep->data + (int)ep->alt, ep->data + (int)ep->pri, (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_CMPS);
+		GETPARAM(offs);
+		CHKMEM(ep->pri);
+		CHKMEM(ep->pri + offs);
+		CHKMEM(ep->alt);
+		CHKMEM(ep->alt + offs);
+		ep->pri = memcmp(ep->data + (int)ep->alt, ep->data + (int)ep->pri, (int)offs);
+		BREAK;
+		CASE(EMBRYO_OP_FILL);
+		GETPARAM(offs);
+		CHKMEM(ep->alt);
+		CHKMEM(ep->alt + offs);
+		for (i = (int)ep->alt;
+		(size_t)offs >= sizeof(Embryo_Cell);
+		i += sizeof(Embryo_Cell), offs -= sizeof(Embryo_Cell))
+			*(Embryo_Cell *)(ep->data + i) = ep->pri;
+		BREAK;
+		CASE(EMBRYO_OP_HALT);
+		GETPARAM(offs);
+		ep->retval = ep->pri;
+		/* store complete status */
+/*
+		ep->frm = frm;
+		ep->stk = stk;
+		ep->hea = hea;
+		ep->pri = pri;
+		ep->alt = alt;
+		ep->cip = (Embryo_Cell)((unsigned char*)cip - code);
+*/
+		if (offs == EMBRYO_ERROR_SLEEP)
+		{
+/*
+			ep->reset_stk = reset_stk;
+			ep->reset_hea = reset_hea;
+*/
+			ep->run_count--;
+			return EMBRYO_PROGRAM_SLEEP;
+		}
+		OK(ep, (int)offs);
+		CASE(EMBRYO_OP_BOUNDS);
+		GETPARAM(offs);
+		if ((Embryo_UCell)ep->pri > (Embryo_UCell)offs)
+			ABORT(ep, EMBRYO_ERROR_BOUNDS);
+		BREAK;
+		CASE(EMBRYO_OP_SYSREQ_PRI);
+		/* save a few registers */
+/*		ep->cip = (Embryo_Cell)((unsigned char *)cip - code);
+		ep->hea = hea;
+		ep->frm = frm;
+		ep->stk = stk;
+*/
+		num = _embryo_native_call(ep, ep->pri, &(ep->pri), (Embryo_Cell *)(ep->data + (int)ep->stk));
+		if (num != EMBRYO_ERROR_NONE)
+		{
+			if (num == EMBRYO_ERROR_SLEEP)
+			{
+/*
+				ep->pri = pri;
+				ep->alt = alt;
+				ep->reset_stk = reset_stk;
+				ep->reset_hea = reset_hea;
+*/
+				ep->run_count--;
+				return EMBRYO_PROGRAM_SLEEP;
+			}
+			ABORT(ep, num);
+		}
+		BREAK;
+		CASE(EMBRYO_OP_SYSREQ_C);
+		GETPARAM(offs);
+
+		/* save a few registers */
+/*		ep->cip = (Embryo_Cell)((unsigned char *)cip - code);
+		ep->hea = hea;
+		ep->frm = frm;
+		ep->ep->stk = stk;
+*/
+		num = _embryo_native_call(ep, offs, &(ep->pri), (Embryo_Cell *)(ep->data + (int)ep->stk));
+		if (num != EMBRYO_ERROR_NONE)
+		{
+			if (num == EMBRYO_ERROR_SLEEP)
+			{
+/*
+				ep->pri = pri;
+				ep->alt = alt;
+				ep->reset_stk = reset_stk;
+				ep->reset_hea = reset_hea;
+*/
+				ep->run_count--;
+				return EMBRYO_PROGRAM_SLEEP;
+			}
+			{
+				Embryo_Header    *hdr;
+				int i, num;
+				Embryo_Func_Stub *func_entry;
+
+				hdr = (Embryo_Header *)ep->code;
+				num = NUMENTRIES(hdr, natives, libraries);
+				func_entry = GETENTRY(hdr, natives, 0);
+				for (i = 0; i < num; i++)
+				{
+					char *entry_name;
+
+					entry_name = GETENTRYNAME(hdr, func_entry);
+					if (i == offs)
+#ifdef __CROSSWORKS_ARM
+						debug_printf("EMBRYO: CALL [%i] %s() non-existent!\n", i, entry_name);
+#else
+						printf("EMBRYO: CALL [%i] %s() non-existent!\n", i, entry_name);
+#endif
+					func_entry =
+						(Embryo_Func_Stub *)((unsigned char *)func_entry + hdr->defsize);
+				}
+			}
+			ABORT(ep, num);
+		}
+		BREAK;
+		CASE(EMBRYO_OP_SYSREQ_D);
+		GETPARAM(offs);
+		/* save a few registers */
+/*
+		ep->cip = (Embryo_Cell)((unsigned char *)cip - code);
+		ep->hea = hea;
+		ep->frm = frm;
+		ep->stk = stk;
+*/
+		num = _embryo_native_call(ep, offs, &(ep->pri), (Embryo_Cell *)(ep->data + (int)ep->stk));
+		if (num != EMBRYO_ERROR_NONE)
+		{
+			if (num == EMBRYO_ERROR_SLEEP)
+			{
+/*
+				ep->pri = pri;
+				ep->alt = alt;
+				ep->reset_stk = reset_stk;
+				ep->reset_hea = reset_hea;
+*/
+				ep->run_count--;
+				return EMBRYO_PROGRAM_SLEEP;
+			}
+			ABORT(ep, ep->error);
+		}
+		BREAK;
+		CASE(EMBRYO_OP_JUMP_PRI);
+		ep->cip = (Embryo_Cell *)(ep->code + (int)ep->pri);
+		BREAK;
+		CASE(EMBRYO_OP_SWITCH);
+		{
+			Embryo_Cell *cptr;
+
+			/* +1, to skip the "casetbl" opcode */
+			cptr = (Embryo_Cell *)(ep->code + (*(ep->cip))) + 1;
+			/* number of records in the case table */
+			num = (int)(*cptr);
+			/* preset to "none-matched" case */
+			ep->cip = (Embryo_Cell *)(ep->code + *(cptr + 1));
+			for (cptr += 2;
+			(num > 0) && (*cptr != ep->pri);
+			num--, cptr += 2);
+			/* case found */
+			if (num > 0)
+				ep->cip = (Embryo_Cell *)(ep->code + *(cptr + 1));
+		}
+		BREAK;
+		CASE(EMBRYO_OP_SWAP_PRI);
+		offs = *(Embryo_Cell *)(ep->data + (int)ep->stk);
+		*(Embryo_Cell *)(ep->data + (int)ep->stk) = ep->pri;
+		ep->pri = offs;
+		BREAK;
+		CASE(EMBRYO_OP_SWAP_ALT);
+		offs = *(Embryo_Cell *)(ep->data + (int)ep->stk);
+		*(Embryo_Cell *)(ep->data + (int)ep->stk) = ep->alt;
+		ep->alt = offs;
+		BREAK;
+		CASE(EMBRYO_OP_PUSHADDR);
+		GETPARAM(offs);
+		PUSH(ep->frm + offs);
+		BREAK;
+		CASE(EMBRYO_OP_NOP);
+		BREAK;
+		CASE(EMBRYO_OP_NONE);
+		CASE(EMBRYO_OP_FILE);
+		CASE(EMBRYO_OP_LINE);
+		CASE(EMBRYO_OP_SYMBOL);
+		CASE(EMBRYO_OP_SRANGE);
+		CASE(EMBRYO_OP_CASETBL);
+		CASE(EMBRYO_OP_SYMTAG);
+		BREAK;
+#ifndef EMBRYO_EXEC_JUMPTABLE
+		default:
+		ABORT(ep, EMBRYO_ERROR_INVINSTR);
+#endif
+		SWITCHEND;
+	}
+	ep->run_count--;
+	ep->hea = ep->hea_start;
+	return EMBRYO_PROGRAM_OK;
+}
+#else
+EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
+{
+
+	Embryo_Header *hdr;
+	Embryo_Func_Stub *func;
+
 	unsigned char *code, *data;
 	Embryo_Cell pri, alt, stk, frm, hea, hea_start;
 	Embryo_Cell reset_stk, reset_hea, *cip;
@@ -1319,6 +2514,7 @@ EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
 	/* set up the registers */
 	hdr = (Embryo_Header *) ep->base;
 	codesize = (Embryo_UCell) (hdr->dat - hdr->cod);
+
 	code = ep->base + (int) hdr->cod;
 	data = ep->base + (int) hdr->dat;
 	hea_start = hea = ep->hea;
@@ -1326,6 +2522,7 @@ EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
 	reset_stk = stk;
 	reset_hea = hea;
 	frm = alt = pri = 0;
+
 
 	/* get the start address */
 	if (fn == EMBRYO_FUNCTION_MAIN) {
@@ -1336,6 +2533,7 @@ EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
 		cip = (Embryo_Cell *) (code + (int) hdr->cip);
 	} else if (fn == EMBRYO_FUNCTION_CONT) {
 		/* all registers: pri, alt, frm, cip, hea, stk, reset_stk, reset_hea */
+		
 		frm = ep->frm;
 		stk = ep->stk;
 		hea = ep->hea;
@@ -1353,10 +2551,12 @@ EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
 			return EMBRYO_PROGRAM_FAIL;
 		}
 		func = GETENTRY(hdr, publics, fn);
+
 		cip = (Embryo_Cell *) (code + (int) func->address);
 	}
 	/* check values just copied */CHKSTACK();
 	CHKHEAP();
+
 
 	if (fn != EMBRYO_FUNCTION_CONT) {
 		int i;
@@ -1416,12 +2616,15 @@ EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
 		}
 		ep->params_size = ep->params_alloc = 0;
 	}
+
 	/* check stack/heap before starting to run */CHKMARGIN();
 
 	/* track recursion depth */
 	ep->run_count++;
 
+
 	max_run_cycles = ep->max_run_cycles;
+
 	/* start running */
 	for (cycle_count = 0;;) {
 		if (max_run_cycles > 0) {
@@ -1745,8 +2948,7 @@ EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
 		BREAK;
 		CASE(EMBRYO_OP_JREL);
 		offs = *cip;
-		cip = (Embryo_Cell *) ((unsigned char *) cip + (int) offs
-				+ sizeof(Embryo_Cell));
+		cip = (Embryo_Cell *) ((unsigned char *) cip + (int) offs + sizeof(Embryo_Cell));
 		BREAK;
 		CASE(EMBRYO_OP_JZER);
 		if (pri == 0)
@@ -2198,7 +3400,7 @@ EAPI Embryo_Status embryo_program_run(Embryo_Program *ep, Embryo_Function fn)
 	ep->hea = hea_start;
 	return EMBRYO_PROGRAM_OK;
 }
-
+#endif
 /**
  * Retreives the return value of the last called function of the given
  * program.
@@ -2267,7 +3469,9 @@ EAPI void embryo_program_max_cycle_run_set(Embryo_Program *ep, int max)
 		return;
 	if (max < 0)
 		max = 0;
+#ifndef _CHIBIOS_VM_
 	ep->max_run_cycles = max;
+#endif
 }
 
 /**
@@ -2284,10 +3488,18 @@ EAPI void embryo_program_max_cycle_run_set(Embryo_Program *ep, int max)
  */
 EAPI int embryo_program_max_cycle_run_get(Embryo_Program *ep)
 {
+#ifndef _CHIBIOS_VM_
 	if (!ep)
 		return 0;
 	return ep->max_run_cycles;
+#else
+	return 0;
+#endif
 }
+
+#ifdef chCoreAlloc
+
+/// XXX to be fixed?
 
 /**
  * @defgroup Embryo_Parameter_Group Function Parameter Functions
@@ -2370,8 +3582,7 @@ EAPI int embryo_parameter_string_push(Embryo_Program *ep, const char *str)
  * @return  @c 1 if successful.  @c 0 otherwise.
  * @ingroup Embryo_Parameter_Group
  */
-EAPI int embryo_parameter_cell_array_push(Embryo_Program *ep,
-		Embryo_Cell *cells, int num)
+EAPI int embryo_parameter_cell_array_push(Embryo_Program *ep, Embryo_Cell *cells, int num)
 {
 	Embryo_Param *pr;
 	Embryo_Cell *cell_array;
@@ -2399,3 +3610,4 @@ EAPI int embryo_parameter_cell_array_push(Embryo_Program *ep,
 	memcpy(pr->cell_array, cells, num * sizeof(Embryo_Cell));
 	return 1;
 }
+#endif

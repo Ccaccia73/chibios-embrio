@@ -160,13 +160,23 @@ EAPI Embryo_Cell     *embryo_data_address_get(Embryo_Program *ep, Embryo_Cell ad
 EAPI Embryo_Cell      embryo_data_heap_push(Embryo_Program *ep, int cells);
 EAPI void             embryo_data_heap_pop(Embryo_Program *ep, Embryo_Cell down_to);
 EAPI int              embryo_program_recursion_get(Embryo_Program *ep);
-EAPI Embryo_Status    embryo_program_run(Embryo_Program *ep, Embryo_Function func);
+
+#ifdef _CHIBIOS_VM_
+	EAPI Embryo_Status    embryo_program_run(EmbrioVM *vmp, Embryo_Function fn);
+#else
+	EAPI Embryo_Status    embryo_program_run(Embryo_Program *ep, Embryo_Function func);
+#endif
 EAPI Embryo_Cell      embryo_program_return_value_get(Embryo_Program *ep);
 EAPI void             embryo_program_max_cycle_run_set(Embryo_Program *ep, int max);
 EAPI int              embryo_program_max_cycle_run_get(Embryo_Program *ep);
-EAPI int              embryo_parameter_cell_push(Embryo_Program *ep, Embryo_Cell cell);
-EAPI int              embryo_parameter_string_push(Embryo_Program *ep, const char *str);
-EAPI int              embryo_parameter_cell_array_push(Embryo_Program *ep, Embryo_Cell *cells, int num);
+
+#if !(defined EMBRYO_PARAMS) && (defined _CHIBIOS_VM_)
+
+#else
+	EAPI int          embryo_parameter_cell_push(Embryo_Program *ep, Embryo_Cell cell);
+	EAPI int          embryo_parameter_string_push(Embryo_Program *ep, const char *str);
+	EAPI int          embryo_parameter_cell_array_push(Embryo_Program *ep, Embryo_Cell *cells, int num);
+#endif
 
 #ifdef  __cplusplus
 }

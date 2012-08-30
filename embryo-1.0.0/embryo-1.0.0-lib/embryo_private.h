@@ -182,17 +182,31 @@ static int __inline __entryswap32(int v)
 #define EMBRYO_MAGIC        0xf1e0 /* magic byte pattern */
 #define EMBRYO_FLAG_COMPACT 0x04   /* compact encoding */
 #define EMBRYO_FLAG_RELOC   0x8000 /* jump/call addresses relocated */
-#define GETPARAM(v)         (v = *(Embryo_Cell *)cip++)
-#define PUSH(v)             (stk -= sizeof(Embryo_Cell), *(Embryo_Cell *)(data + (int)stk) = v)
-#define POP(v)              (v = *(Embryo_Cell *)(data + (int)stk), stk += sizeof(Embryo_Cell))
-#define ABORT(ep,v)         {(ep)->stk = reset_stk; (ep)->hea = reset_hea; (ep)->run_count--; ep->error = v; (ep)->max_run_cycles = max_run_cycles; return EMBRYO_PROGRAM_FAIL;}
-#define OK(ep,v)            {(ep)->stk = reset_stk; (ep)->hea = reset_hea; (ep)->run_count--; ep->error = v; (ep)->max_run_cycles = max_run_cycles; return EMBRYO_PROGRAM_OK;}
-#define TOOLONG(ep)         {(ep)->pri = pri; (ep)->cip = (Embryo_Cell)((unsigned char *)cip - code); (ep)->alt = alt; (ep)->frm = frm; (ep)->stk = stk; (ep)->hea = hea; (ep)->reset_stk = reset_stk; (ep)->reset_hea = reset_hea; (ep)->run_count--; (ep)->max_run_cycles = max_run_cycles; return EMBRYO_PROGRAM_TOOLONG;}
-#define STKMARGIN           ((Embryo_Cell)(16 * sizeof(Embryo_Cell)))
-#define CHKMARGIN()         if ((hea + STKMARGIN) > stk) {ep->error = EMBRYO_ERROR_STACKERR; return 0;}
-#define CHKSTACK()          if (stk > ep->stp) {ep->run_count--; ep->error = EMBRYO_ERROR_STACKLOW; return 0;}
-#define CHKHEAP()           if (hea < ep->hlw) {ep->run_count--; ep->error = EMBRYO_ERROR_HEAPLOW; return 0;}
-#define CHKMEM(x)           if ((((x) >= hea) && ((x) < stk)) || ((Embryo_UCell)(x) >= (Embryo_UCell)ep->stp)) ABORT(ep, EMBRYO_ERROR_MEMACCESS);
+#ifdef _CHIBIOS_VM_
+	#define GETPARAM(v)         (v = *(Embryo_Cell *)ep->cip++)
+	#define PUSH(v)             (ep->stk -= sizeof(Embryo_Cell), *(Embryo_Cell *)(ep->data + (int)ep->stk) = v)
+	#define POP(v)              (v = *(Embryo_Cell *)(ep->data + (int)ep->stk), ep->stk += sizeof(Embryo_Cell))
+	#define ABORT(ep,v)         {(ep)->stk = ep->reset_stk; (ep)->hea = ep->reset_hea; (ep)->run_count--; ep->error = v; return EMBRYO_PROGRAM_FAIL;}
+	#define OK(ep,v)            {(ep)->stk = ep->reset_stk; (ep)->hea = ep->reset_hea; (ep)->run_count--; ep->error = v; return EMBRYO_PROGRAM_OK;}
+	#define TOOLONG(ep)         {(ep)->cip = (Embryo_Cell)((unsigned char *)ep->cip - ep->code); (ep)->run_count--; return EMBRYO_PROGRAM_TOOLONG;}
+	#define STKMARGIN           ((Embryo_Cell)(16 * sizeof(Embryo_Cell)))
+	#define CHKMARGIN()         if ((ep->hea + STKMARGIN) > ep->stk) {ep->error = EMBRYO_ERROR_STACKERR; return 0;}
+	#define CHKSTACK()          if (ep->stk > ep->stp) {ep->run_count--; ep->error = EMBRYO_ERROR_STACKLOW; return 0;}
+	#define CHKHEAP()           if (ep->hea < ep->hlw) {ep->run_count--; ep->error = EMBRYO_ERROR_HEAPLOW; return 0;}
+	#define CHKMEM(x)           if ((((x) >= ep->hea) && ((x) < ep->stk)) || ((Embryo_UCell)(x) >= (Embryo_UCell)ep->stp)) ABORT(ep, EMBRYO_ERROR_MEMACCESS);
+#else
+	#define GETPARAM(v)         (v = *(Embryo_Cell *)cip++)
+	#define PUSH(v)             (stk -= sizeof(Embryo_Cell), *(Embryo_Cell *)(data + (int)stk) = v)
+	#define POP(v)              (v = *(Embryo_Cell *)(data + (int)stk), stk += sizeof(Embryo_Cell))
+	#define ABORT(ep,v)         {(ep)->stk = reset_stk; (ep)->hea = reset_hea; (ep)->run_count--; ep->error = v; (ep)->max_run_cycles = max_run_cycles; return EMBRYO_PROGRAM_FAIL;}
+	#define OK(ep,v)            {(ep)->stk = reset_stk; (ep)->hea = reset_hea; (ep)->run_count--; ep->error = v; (ep)->max_run_cycles = max_run_cycles; return EMBRYO_PROGRAM_OK;}
+	#define TOOLONG(ep)         {(ep)->pri = pri; (ep)->cip = (Embryo_Cell)((unsigned char *)cip - code); (ep)->alt = alt; (ep)->frm = frm; (ep)->stk = stk; (ep)->hea = hea; (ep)->reset_stk = reset_stk; (ep)->reset_hea = reset_hea; (ep)->run_count--; (ep)->max_run_cycles = max_run_cycles; return EMBRYO_PROGRAM_TOOLONG;}
+	#define STKMARGIN           ((Embryo_Cell)(16 * sizeof(Embryo_Cell)))
+	#define CHKMARGIN()         if ((hea + STKMARGIN) > stk) {ep->error = EMBRYO_ERROR_STACKERR; return 0;}
+	#define CHKSTACK()          if (stk > ep->stp) {ep->run_count--; ep->error = EMBRYO_ERROR_STACKLOW; return 0;}
+	#define CHKHEAP()           if (hea < ep->hlw) {ep->run_count--; ep->error = EMBRYO_ERROR_HEAPLOW; return 0;}
+	#define CHKMEM(x)           if ((((x) >= hea) && ((x) < stk)) || ((Embryo_UCell)(x) >= (Embryo_UCell)ep->stp)) ABORT(ep, EMBRYO_ERROR_MEMACCESS);
+#endif
 
 typedef struct _Embryo_Param        Embryo_Param;
 typedef struct _Embryo_Header       Embryo_Header;
@@ -213,7 +227,11 @@ struct _Embryo_Program
 	unsigned char *base; /* points to the Embryo_Program header ("ephdr") plus the code, optionally also the data */
 	int pushes; /* number of pushes - pops */
 	/* for external functions a few registers must be accessible from the outside */
+#ifdef _CHIBIOS_VM_	
+   Embryo_Cell* cip; /* instruction pointer: relative to base + ephdr->cod */
+#else
 	Embryo_Cell cip; /* instruction pointer: relative to base + ephdr->cod */
+#endif
 	Embryo_Cell frm; /* stack frame base: relative to base + ephdr->dat */
 	Embryo_Cell hea; /* top of the heap: relative to base + ephdr->dat */
 	Embryo_Cell hlw; /* bottom of the heap: relative to base + ephdr->dat */
@@ -227,6 +245,9 @@ struct _Embryo_Program
 	Embryo_Cell alt;
 	Embryo_Cell reset_stk;
 	Embryo_Cell reset_hea;
+#ifdef _CHIBIOS_VM_
+  Embryo_Cell hea_start;
+#endif
 	Embryo_Cell *syscall_d; /* relocated value/address for the SYSCALL.D opcode */
 
 	/* extended stuff */
@@ -238,15 +259,22 @@ struct _Embryo_Program
 	unsigned char  dont_free_code : 1;
 	Embryo_Cell    retval;
 
+#if !(defined EMBRYO_PARAMS) && (defined _CHIBIOS_VM_)
+
+#else
 	Embryo_Param  *params;
 	int            params_size;
 	int            params_alloc;
+#endif
 
 	int            run_count;
 
+#ifdef _CHIBIOS_VM_
+  unsigned char  *data;
+#else
 	int            max_run_cycles;
-
 	void          *data;
+#endif
 };
 
 #if defined (_MSC_VER) || (defined (__SUNPRO_C) && __SUNPRO_C < 0x5100)
