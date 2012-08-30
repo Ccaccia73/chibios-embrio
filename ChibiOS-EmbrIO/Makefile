@@ -57,25 +57,12 @@ endif
 # Define project name here
 PROJECT = ch
 
-# Define linker script file here
-LDSCRIPT= ch.ld
-
 # Imported source files and paths
-CHIBIOS = ../../ChibiOS_2.4.1
-#CHIBIOS = ../../ChibiOS_2.2.7
-
-#include $(CHIBIOS)/boards/HY-STM32_STM32F103V/board.mk
+CHIBIOS = ../..
 include $(CHIBIOS)/boards/OLIMEX_STM32_P107/board.mk
-
-
-#include $(CHIBIOS)/os/hal/platforms/STM32/platform.mk
 include $(CHIBIOS)/os/hal/platforms/STM32F1xx/platform.mk
-
 include $(CHIBIOS)/os/hal/hal.mk
-
-#include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32/port.mk
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F1xx/port.mk
-
 include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
 
@@ -92,7 +79,6 @@ CSRC = $(PORTSRC) \
        $(BOARDSRC) \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/syscalls.c \
-       $(CHIBIOS)/os/various/shell.c \
        main.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
