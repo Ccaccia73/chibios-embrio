@@ -30,7 +30,7 @@ endif
 
 # Enable this if you want to see the full log while compiling.
 ifeq ($(USE_VERBOSE_COMPILE),)
-  USE_VERBOSE_COMPILE = no
+  USE_VERBOSE_COMPILE = yes
 endif
 
 #
@@ -55,16 +55,20 @@ endif
 #
 
 # Define project name here
-PROJECT = ch
+PROJECT = embrio
 
 # Imported source files and paths
-CHIBIOS = ../..
+CHIBIOS = ../../ChibiOS_2.4.2
 include $(CHIBIOS)/boards/OLIMEX_STM32_P107/board.mk
 include $(CHIBIOS)/os/hal/platforms/STM32F1xx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F1xx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
+
+# Import embryo library files
+EMBRYO_LIB = ../embryo-1.0.0/embryo-1.0.0-lib
+include $(EMBRYO_LIB)/embryo_lib.mk
 
 # Define linker script file here
 LDSCRIPT= $(PORTLD)/STM32F107xC.ld
@@ -79,6 +83,7 @@ CSRC = $(PORTSRC) \
        $(BOARDSRC) \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/syscalls.c \
+       $(EMBRYO_LIB_SRC) \
        main.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -110,7 +115,8 @@ ASMSRC = $(PORTASM)
 
 INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
-         $(CHIBIOS)/os/various
+         $(CHIBIOS)/os/various \
+         $(EMBRYO_LIB_INC)
 
 #
 # Project, sources and paths
@@ -158,7 +164,7 @@ CPPWARN = -Wall -Wextra
 #
 
 # List all default C defines here, like -D_DEBUG=1
-DDEFS =
+DDEFS = -D_CHIBIOS_VM_
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =

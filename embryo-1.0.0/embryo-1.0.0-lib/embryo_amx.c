@@ -3497,7 +3497,7 @@ EAPI int embryo_program_max_cycle_run_get(Embryo_Program *ep)
 #endif
 }
 
-#ifdef chCoreAlloc
+#ifdef _CHIBIOS_VM_
 
 /// XXX to be fixed?
 

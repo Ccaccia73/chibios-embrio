@@ -43,6 +43,7 @@ static msg_t Thread1(void *arg) {
     palSetPad(GPIOC, GPIOC_LED_STATUS1);
     chThdSleepMilliseconds(500);
   }
+  return (msg_t)1;
 }
 
 /*
