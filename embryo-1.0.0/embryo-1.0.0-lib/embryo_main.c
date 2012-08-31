@@ -16,6 +16,18 @@ EAPI Embryo_Version *embryo_version = &_version;
 
 static int _embryo_init_count = 0;
 
+
+Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
+EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
+
+MemoryPool *EP_mp;
+MemoryPool *EVM_mp;
+
+int currVM = 0;
+
+MemoryHeap *code_mh;
+Embryo_Cell code_buff[MAX_CODE_SIZE];
+
 /*** EXPORTED CALLS ***/
 
 /**

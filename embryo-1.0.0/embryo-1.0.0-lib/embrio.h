@@ -71,26 +71,26 @@ typedef struct {
 
 // arrays defining the Programs and VMs
 // Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
-Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
-EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
+extern Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
+extern EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
 
 
 // pointers to the memory pools used for programs and virtual machines
-MemoryPool *EP_mp;
-MemoryPool *EVM_mp;
+extern MemoryPool *EP_mp;
+extern MemoryPool *EVM_mp;
 
 // variable defining the actual VM used
-int currVM = 0;
+extern int currVM;
 
 
 
 // heap used to load the code
-MemoryHeap *code_mh;
+extern MemoryHeap *code_mh;
 
 // max number of embryo cells used for code
 #define MAX_CODE_SIZE 2048
 // buffer to load the code
-Embryo_Cell code_buff[MAX_CODE_SIZE];
+extern Embryo_Cell code_buff[MAX_CODE_SIZE];
 
 
 
