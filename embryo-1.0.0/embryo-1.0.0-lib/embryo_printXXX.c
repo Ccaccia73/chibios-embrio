@@ -95,7 +95,7 @@ _embryo_toggleXXX(Embryo_Program *ep, Embryo_Cell *params)
 }
 
 
-#ifdef _CHIBIOS_VM_
+#ifdef _CHIBIOS_VM_TMP
 static void _embryo_printXXX_cb(GPTDriver *gptp) {
 
 	(void)gptp;
@@ -116,12 +116,12 @@ void _embryo_printXXX_init(Embryo_Program *ep)
 	embryo_program_native_call_add(ep, "printXXX", _embryo_printXXX_printXXX);
 	embryo_program_native_call_add(ep, "sleepXXX", _embryo_sleepXXX);
 	embryo_program_native_call_add(ep, "toggleXXX", _embryo_toggleXXX);
-#ifdef _CHIBIOS_VM_
+#ifdef _CHIBIOS_VM_TMP
 	if(embryo_program_function_find(ep, "@event") != EMBRYO_FUNCTION_NONE) {
 		gptStart(&GPTD1, &gpt1cfg);
 		subscribed_ep = ep;
 	}
 #endif
 
-DEBUG_PRINT(("printXXX registered\n"));
+	DEBUG_PRINT(("printXXX registered\n"));
 }

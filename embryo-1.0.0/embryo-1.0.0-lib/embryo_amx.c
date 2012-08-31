@@ -38,10 +38,13 @@
 
 #ifdef _CHIBIOS_VM_
 	#include "embrio.h"
-	#include "embrio_private.h"
+	// #include "embrio_private.h"
 #endif
 
-#define JUMPABS(base, ip)     ((Embryo_Cell *)(code + (*ip)))
+
+
+
+#define JUMPABS(base, ip)     ((Embryo_Cell *)(ep->code + (*ip)))
 
 #ifdef WORDS_BIGENDIAN
 static void _embryo_byte_swap_16 (unsigned short *v);
@@ -289,8 +292,10 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 #ifdef _CHIBIOS_VM_
 	// ep = (Embryo_Program*)chCoreAlloc(sizeof(Embryo_Program));
 	// memset(ep, 0, sizeof(Embryo_Program));
-	// Define a memory pool
-	ep =
+
+	ep = (Embryo_Program*)chPoolAlloc(EP_mp);
+	currVM++;
+	memset(ep, 0, sizeof(Embryo_Program));
 #else
 	ep = calloc(1, sizeof(Embryo_Program));
 #endif
@@ -300,14 +305,15 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 	}
 	
 #ifdef _CHIBIOS_VM_
-	update
-	code_data = (void*)chCoreAlloc(size);
+	// code_data = (void*)chCoreAlloc(size);
+	code_data = chHeapAlloc(code_mh, (size_t)size);
 #else
 	code_data = malloc(size);
 #endif
 	if (!code_data)
 	{
-		free(ep);
+		currVM--;
+		chPoolFree(EP_mp,(void*)&EP_pool[currVM]);
 		return NULL ;
 	}
 
@@ -317,7 +323,9 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 		return ep;
 	}
 #ifdef _CHIBIOS_VM_
-	fixme;
+	chHeapFree(code_data);
+	currVM--;
+	chPoolFree(EP_mp,(void*)&EP_pool[currVM]);
 #else
 	free(code_data);
 	free(ep);
@@ -325,6 +333,7 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 	return NULL ;
 }
 
+#ifdef _NO_
 /**
  * Creates a new Embryo program, with bytecode data that cannot be
  * freed.
@@ -353,6 +362,7 @@ EAPI Embryo_Program *embryo_program_const_new(void *data, int size)
 	free(ep);
 	return NULL ;
 }
+#endif
 
 /**
  * Creates a new Embryo program based on the bytecode data stored in the
@@ -414,7 +424,10 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
  */
 EAPI void embryo_program_free(Embryo_Program *ep) {
 #ifdef _CHIBIOS_VM_
-
+	// need to free code (Heap) and Program (Pool)
+	chHeapFree((void*)ep->code);
+	currVM--;
+	chPoolFree(EP_mp,(void*)&EP_pool[currVM]);
 #else
 	int i;
 
@@ -898,7 +911,7 @@ EAPI const char *embryo_error_string_get(Embryo_Error error)
 		/* EMBRYO_ERROR_USERDATA  */"Unable to set user data field (table full)",
 		/* EMBRYO_ERROR_INIT_JIT  */"Cannot initialize the JIT",
 		/* EMBRYO_ERROR_PARAMS    */"Parameter error", };
-	if (((int) error < 0)
+	if (( (int)error < 0)
 			|| ((int) error >= (int) (sizeof(messages) / sizeof(messages[0]))))
 		return (const char *) "(unknown)";
 	return messages[error];
@@ -1112,7 +1125,7 @@ EAPI int embryo_program_recursion_get(Embryo_Program *ep)
 
 #ifdef __GNUC__
 #if 1
-#define EMBRYO_EXEC_JUMPTABLE
+	#define EMBRYO_EXEC_JUMPTABLE
 #endif
 #endif
 
@@ -1149,7 +1162,7 @@ EAPI int embryo_program_recursion_get(Embryo_Program *ep)
  */
 
 #ifdef _CHIBIOS_VM_
-EAPI Embryo_Status embryo_program_run(EmbrioVM *vmp, Embryo_Function fn)
+Embryo_Status embryo_program_run(EmbrioVM *vmp, Embryo_Function fn)
 {
 	Embryo_Program   *ep = vmp->ep;
 	
@@ -1819,7 +1832,7 @@ static const void *switchtable[256] =
 		BREAK;
 		CASE(EMBRYO_OP_CALL);
 		PUSH(((unsigned char *)ep->cip - ep->code) + sizeof(Embryo_Cell));/* skip address */
-		ep->cip = JUMPABS(ep->code, ep->cip); /* jump to the address */
+		ep->cip = JUMPABS( ep->code, ep->cip); /* jump to the address */
 		BREAK;
 		CASE(EMBRYO_OP_CALL_PRI);
 		PUSH((unsigned char *)ep->cip - ep->code);
@@ -1872,7 +1885,7 @@ static const void *switchtable[256] =
 		BREAK;
 		CASE(EMBRYO_OP_JGRTR);
 		if ((Embryo_UCell)ep->pri > (Embryo_UCell)ep->alt)
-			ep->cip = JUMPABS(code, ep->cip);
+			ep->cip = JUMPABS(ep->code, ep->cip);
 		else
 			ep->cip = (Embryo_Cell *)((unsigned char *)ep->cip + sizeof(Embryo_Cell));
 		BREAK;
@@ -3497,7 +3510,7 @@ EAPI int embryo_program_max_cycle_run_get(Embryo_Program *ep)
 #endif
 }
 
-#ifdef _CHIBIOS_VM_
+#ifdef _CHIBIOS_VM_TMP
 
 /// XXX to be fixed?
 

@@ -7,6 +7,9 @@
 
 #include "Embryo.h"
 #include "embryo_private.h"
+#include "embrio.h"
+
+#include "chconf.h"
 
 static Embryo_Version _version = { VMAJ, VMIN, VMIC, VREV };
 EAPI Embryo_Version *embryo_version = &_version;
@@ -29,12 +32,30 @@ static int _embryo_init_count = 0;
  */
 EAPI int embryo_init(void)
 {
-   if (++_embryo_init_count != 1)
-     return _embryo_init_count;
+	int i;
 
-   srand(time(NULL));
+	if (++_embryo_init_count != 1)
+		return _embryo_init_count;
 
-   return _embryo_init_count;
+	// srand(time(NULL));
+
+	// initialize and preload the blocks
+
+	chPoolInit( EP_mp, MAX_EMBRIO_VM_NUM * sizeof(Embryo_Program), NULL);
+	chPoolInit(EVM_mp, MAX_EMBRIO_VM_NUM * sizeof(EmbrioVM), NULL);
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(EP_mp, (void*)&EP_pool[i]);
+	}
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(EVM_mp, (void*)&EVM_pool[i]);
+	}
+
+	// initialize a memory heap to load the code
+	chHeapInit(code_mh, (void*)code_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
+
+	return _embryo_init_count;
 }
 
 

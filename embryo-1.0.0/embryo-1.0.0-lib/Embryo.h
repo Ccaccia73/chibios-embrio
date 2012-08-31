@@ -113,6 +113,9 @@ typedef int							Embryo_Function;
 #define EMBRYO_FUNCTION_MAIN -1         /* Start at program entry point */
 #define EMBRYO_FUNCTION_CONT -2         /* Continue from last address */
 
+
+
+
 typedef union
 {
 	float       f;
@@ -135,7 +138,9 @@ EAPI int              embryo_init(void);
 EAPI int              embryo_shutdown(void);
 
 EAPI Embryo_Program  *embryo_program_new(void *data, int size);
+#ifdef _NO_
 EAPI Embryo_Program  *embryo_program_const_new(void *data, int size);
+#endif
 EAPI Embryo_Program  *embryo_program_load(const char *file);
 EAPI void             embryo_program_free(Embryo_Program *ep);
 EAPI void             embryo_program_native_call_add(Embryo_Program *ep, const char *name, Embryo_Cell (*func) (Embryo_Program *ep, Embryo_Cell *params));
@@ -162,7 +167,8 @@ EAPI void             embryo_data_heap_pop(Embryo_Program *ep, Embryo_Cell down_
 EAPI int              embryo_program_recursion_get(Embryo_Program *ep);
 
 #ifdef _CHIBIOS_VM_
-	EAPI Embryo_Status    embryo_program_run(EmbrioVM *vmp, Embryo_Function fn);
+ 	// moved in embrio.h
+	// EAPI Embryo_Status    embryo_program_run(EmbrioVM *vmp, Embryo_Function fn);
 #else
 	EAPI Embryo_Status    embryo_program_run(Embryo_Program *ep, Embryo_Function func);
 #endif
@@ -177,6 +183,10 @@ EAPI int              embryo_program_max_cycle_run_get(Embryo_Program *ep);
 	EAPI int          embryo_parameter_string_push(Embryo_Program *ep, const char *str);
 	EAPI int          embryo_parameter_cell_array_push(Embryo_Program *ep, Embryo_Cell *cells, int num);
 #endif
+
+// Memory Pool for Embryo_Program
+// static MemoryPool *embryo_program_MP;
+
 
 #ifdef  __cplusplus
 }

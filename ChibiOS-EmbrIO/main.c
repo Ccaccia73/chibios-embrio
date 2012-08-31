@@ -28,6 +28,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "test.h"
+#include "Embryo.h"
 
 /*
  * Green LED blinker thread, times are in milliseconds.
@@ -60,6 +61,9 @@ int main(void) {
    */
   halInit();
   chSysInit();
+
+
+  embryo_init();
 
   /*
    * Activates the serial driver 3 using the driver default configuration.
