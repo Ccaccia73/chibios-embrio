@@ -34,6 +34,39 @@ static msg_t vm_thread(void *p) {
  */
 void embrioInit(void) {
 
+	int i;
+
+	// initialize and preload the blocks
+	// Embryo Program
+	chPoolInit( EP_mp, MAX_EMBRIO_VM_NUM * sizeof(Embryo_Program), NULL);
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(EP_mp, (void*)&EP_pool[i]);
+	}
+
+	// Embrio Virtual Machine
+	chPoolInit(EVM_mp, MAX_EMBRIO_VM_NUM * sizeof(EmbrioVM), NULL);
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(EVM_mp, (void*)&EVM_pool[i]);
+	}
+
+	// Stack Top: the dimension of stack top is an int
+	chPoolInit(Estp_mp, MAX_EMBRIO_VM_NUM * sizeof(int), NULL);
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(Estp_mp, (void*)&Estp_pool[i]);
+	}
+
+	// initialize a memory heap to put the code
+	chHeapInit(code_mh, (void*)code_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
+
+	// initialize a memory heap to load the program (the heap is freed after the code is copied
+	chHeapInit(prog_mh, (void*)prog_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
+
+	// initialize a memory heap to put the native calls
+	chHeapInit(nc_mh, (void*)nc_buff, MAX_NATIVE_CALLS * sizeof(Embryo_Native));
+
 }
 
 /*

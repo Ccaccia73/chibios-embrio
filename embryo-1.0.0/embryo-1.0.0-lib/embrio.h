@@ -69,31 +69,39 @@ typedef struct {
 // define the max number of virtual machines and programs
 #define MAX_EMBRIO_VM_NUM 4
 
-// arrays defining the Programs and VMs
-// Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
+// array defining the Programs and pointer to memory pool
+extern MemoryPool *EP_mp;
 extern Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
+
+
+// array defining the Virtual Machines and memory pool
+extern MemoryPool *EVM_mp;
 extern EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
 
-
-// pointers to the memory pools used for programs and virtual machines
-extern MemoryPool *EP_mp;
-extern MemoryPool *EVM_mp;
+// array defining the stack top and memory pool
+extern MemoryPool *Estp_mp;
+extern int Estp_pool[MAX_EMBRIO_VM_NUM];
 
 // variable defining the actual VM used
 extern int currVM;
 
 
-
-// heap used to load the code
-extern MemoryHeap *code_mh;
-
 // max number of embryo cells used for code
 #define MAX_CODE_SIZE 2048
-// buffer to load the code
+
+// heap and buffer used to load the code
+extern MemoryHeap *code_mh;
 extern Embryo_Cell code_buff[MAX_CODE_SIZE];
 
+// heap and buffer to load the program
+extern MemoryHeap *prog_mh;
+extern Embryo_Cell prog_buff[MAX_CODE_SIZE];
 
+#define MAX_NATIVE_CALLS 128
 
+// heap and buffer to use native calls
+extern MemoryHeap *nc_mh;
+extern Embryo_Native nc_buff[MAX_NATIVE_CALLS];
 
 
 #ifdef __cplusplus

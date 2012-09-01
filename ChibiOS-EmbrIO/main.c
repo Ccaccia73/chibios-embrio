@@ -28,6 +28,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "test.h"
+#include "embrio.h"
 #include "Embryo.h"
 
 /*
@@ -64,6 +65,7 @@ int main(void) {
 
 
   embryo_init();
+  embrioInit();
 
   /*
    * Activates the serial driver 3 using the driver default configuration.

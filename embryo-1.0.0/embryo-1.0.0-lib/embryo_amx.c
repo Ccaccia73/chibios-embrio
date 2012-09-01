@@ -333,6 +333,8 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 	return NULL ;
 }
 
+
+/// FIXME: are we interested in non freeable VMs?
 #ifdef _NO_
 /**
  * Creates a new Embryo program, with bytecode data that cannot be
@@ -401,18 +403,30 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
 	if ((int) hdr.size < program_size){
 		program_size = hdr.size;
 	}
+#ifdef _CHIBIOS_VM_
+	program = chHeapAlloc(prog_mh, program_size);
+#else
 	program = malloc(program_size);
+#endif
 	if (!program) {
 		fclose(f);
 		return NULL ;
 	}
 	if (fread(program, program_size, 1, f) != 1) {
+#ifdef _CHIBIOS_VM_
+		chHeapFree(program);
+#else
 		free(program);
+#endif
 		fclose(f);
 		return NULL ;
 	}
 	ep = embryo_program_new(program, program_size);
+#ifdef _CHIBIOS_VM_
+	chHeapFree(program);
+#else
 	free(program);
+#endif
 	fclose(f);
 	return ep;
 }
@@ -424,10 +438,14 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
  */
 EAPI void embryo_program_free(Embryo_Program *ep) {
 #ifdef _CHIBIOS_VM_
-	// need to free code (Heap) and Program (Pool)
+	// need to free code (Heap), Native Calls (Heap) and Program (Pool)
 	chHeapFree((void*)ep->code);
+
+	chHeapFree((void*)ep->native_calls);
 	currVM--;
 	chPoolFree(EP_mp,(void*)&EP_pool[currVM]);
+
+	chPoolFree(Estp_mp, (void*)&Estp_pool[currVM]);
 #else
 	int i;
 
@@ -499,7 +517,8 @@ EAPI void embryo_program_native_call_add(Embryo_Program *ep, const char *name, E
 
 		ep->native_calls_alloc += 32;
 #ifdef _CHIBIOS_VM_
-		calls = (Embryo_Native*)chCoreAlloc(ep->native_calls_alloc * sizeof(Embryo_Native));
+		// calls = (Embryo_Native*)chCoreAlloc(ep->native_calls_alloc * sizeof(Embryo_Native));
+		calls = (Embryo_Native*)chHeapAlloc(nc_mh, sizeof(Embryo_Native) * ep->native_calls_alloc);
 #else
 		calls = realloc(ep->native_calls,
 				ep->native_calls_alloc * sizeof(Embryo_Native));
@@ -596,7 +615,8 @@ EAPI void embryo_program_vm_push(Embryo_Program *ep)
 	}
 	hdr = (Embryo_Header *) ep->code;
 #ifdef _CHIBIOS_VM_
-	ep->base = (void*)chCoreAlloc(hdr->stp);
+	// ep->base = (void*)chCoreAlloc(hdr->stp);
+	ep->base = chPoolAlloc(Estp_mp);
 #else
 	ep->base = malloc(hdr->stp);
 #endif
@@ -627,7 +647,11 @@ EAPI void embryo_program_vm_pop(Embryo_Program *ep)
 	if (ep->pushes >= 1){
 		return;
 	}
+#ifdef _CHIBIOS_VM_
+	chPoolFree(Estp_mp, (void*)ep->base);
+#else
 	free(ep->base);
+#endif
 	ep->base = NULL;
 }
 

@@ -20,6 +20,7 @@
 #endif
 
 
+/// FIXME: used?
 
 #ifdef _CHIBIOS_VM_
 #define STRGET(ep, str, par) { \
