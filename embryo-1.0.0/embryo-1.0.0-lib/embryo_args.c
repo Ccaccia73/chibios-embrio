@@ -98,6 +98,7 @@ _embryo_args_getsarg(Embryo_Program *ep, Embryo_Cell *params)
    base_cell = *(Embryo_Cell *)(data + (int)ep->frm +
 			  (((int)params[1] + 3) * sizeof(Embryo_Cell)));
 
+   /// FIXME: alloca?
    s = alloca(params[3]);
 
    while (i < params[3])

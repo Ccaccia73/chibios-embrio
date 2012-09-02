@@ -16,32 +16,6 @@ EAPI Embryo_Version *embryo_version = &_version;
 
 static int _embryo_init_count = 0;
 
-// Memory pools (defined extern in embrio.h)
-MemoryPool *EP_mp;
-Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
-
-MemoryPool *EVM_mp;
-EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
-
-MemoryPool *Estp_mp;
-int Estp_pool[MAX_EMBRIO_VM_NUM];
-
-
-int currVM = 0;
-
-// Memory heaps
-// code
-MemoryHeap *code_mh;
-Embryo_Cell code_buff[MAX_CODE_SIZE];
-
-// program
-MemoryHeap *prog_mh;
-Embryo_Cell prog_buff[MAX_CODE_SIZE];
-
-// native calls
-MemoryHeap *nc_mh;
-Embryo_Native nc_buff[MAX_NATIVE_CALLS];
-
 /*** EXPORTED CALLS ***/
 
 /**

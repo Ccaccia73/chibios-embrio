@@ -6,9 +6,37 @@
  */
 
 #include "ch.h"
+#include "hal.h"
 #include "embrio.h"
 #include "embrio_private.h"
 #include "embryo_private.h"
+
+// Memory pools (defined extern in embrio.h)
+MemoryPool EP_mp;
+Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
+
+MemoryPool EVM_mp;
+EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
+
+MemoryPool Estp_mp;
+int Estp_pool[MAX_EMBRIO_VM_NUM];
+
+
+int currVM = 0;
+
+// Memory heaps
+// code
+MemoryHeap code_mh;
+Embryo_Cell code_buff[MAX_CODE_SIZE];
+
+// program
+MemoryHeap prog_mh;
+Embryo_Cell prog_buff[MAX_CODE_SIZE];
+
+// native calls
+MemoryHeap nc_mh;
+Embryo_Native nc_buff[MAX_NATIVE_CALLS];
+
 
 static msg_t vm_thread(void *p) {
 	msg_t msg = RDY_OK;
@@ -34,38 +62,76 @@ static msg_t vm_thread(void *p) {
  */
 void embrioInit(void) {
 
-	int i;
 
+	embrioPoolsSetup();
+
+	embrioHeapsSetup();
+
+	embrioPoolsTest();
+
+}
+
+
+void embrioPoolsSetup(void){
 	// initialize and preload the blocks
 	// Embryo Program
-	chPoolInit( EP_mp, MAX_EMBRIO_VM_NUM * sizeof(Embryo_Program), NULL);
 
-	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
-		chPoolFree(EP_mp, (void*)&EP_pool[i]);
-	}
+
+	chPoolInit( &EP_mp, sizeof(Embryo_Program), NULL);
 
 	// Embrio Virtual Machine
-	chPoolInit(EVM_mp, MAX_EMBRIO_VM_NUM * sizeof(EmbrioVM), NULL);
-
-	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
-		chPoolFree(EVM_mp, (void*)&EVM_pool[i]);
-	}
+	chPoolInit( &EVM_mp, sizeof(EmbrioVM), NULL);
 
 	// Stack Top: the dimension of stack top is an int
-	chPoolInit(Estp_mp, MAX_EMBRIO_VM_NUM * sizeof(int), NULL);
+	chPoolInit( &Estp_mp, sizeof(int), NULL);
 
-	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
-		chPoolFree(Estp_mp, (void*)&Estp_pool[i]);
-	}
+}
 
+void embrioHeapsSetup(void){
 	// initialize a memory heap to put the code
-	chHeapInit(code_mh, (void*)code_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
+	chHeapInit(&code_mh, (void*)code_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
 
 	// initialize a memory heap to load the program (the heap is freed after the code is copied
-	chHeapInit(prog_mh, (void*)prog_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
+	chHeapInit(&prog_mh, (void*)prog_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
 
 	// initialize a memory heap to put the native calls
-	chHeapInit(nc_mh, (void*)nc_buff, MAX_NATIVE_CALLS * sizeof(Embryo_Native));
+	chHeapInit(&nc_mh, (void*)nc_buff, MAX_NATIVE_CALLS * sizeof(Embryo_Native));
+
+}
+
+void embrioPoolsTest(void){
+
+	int i;
+	// test
+	// void *test_alloc;
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(&EP_mp, (void*)(&EP_pool[i]));
+	}
+
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(&EVM_mp, (void*)(&EVM_pool[i]));
+	}
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(&Estp_mp, (void*)(&Estp_pool[i]));
+	}
+
+	/* test
+	palClearPad(GPIOC, GPIOC_LED_STATUS2);
+
+	// tests
+	test_alloc = chPoolAlloc(&EP_mp);
+
+	if(test_alloc == NULL){
+		palClearPad(GPIOC, GPIOC_LED_STATUS2);
+	}else{
+		palSetPad(GPIOC, GPIOC_LED_STATUS2);
+	}
+
+	chPoolFree(&EP_mp, (void*)(&EP_pool[0]));
+	*/
 
 }
 

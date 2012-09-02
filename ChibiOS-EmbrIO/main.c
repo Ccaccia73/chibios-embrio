@@ -63,6 +63,11 @@ int main(void) {
   halInit();
   chSysInit();
 
+  /*
+   * Creates the blinker thread.
+   */
+  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+
 
   embryo_init();
   embrioInit();
@@ -72,18 +77,16 @@ int main(void) {
    */
   sdStart(&SD3, NULL);
 
-  /*
-   * Creates the blinker thread.
-   */
-  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
    * sleeping in a loop and check the button state.
    */
+
   while (TRUE) {
     if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0)
       TestThread(&SD3);
     chThdSleepMilliseconds(500);
   }
+
 }
