@@ -7,7 +7,7 @@ RemoteSystemsTempFiles/
 backup/
 
 #compiled
-*.o
+*.o !test01.o
 *.so
 *.a
 .dep/

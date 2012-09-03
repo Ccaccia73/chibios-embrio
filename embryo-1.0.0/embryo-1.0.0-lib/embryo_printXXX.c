@@ -20,7 +20,7 @@
 #endif
 
 
-/// FIXME: used?
+/// FIXME: switch to heap?
 
 #ifdef _CHIBIOS_VM_
 #define STRGET(ep, str, par) { \
@@ -87,7 +87,7 @@ static Embryo_Cell
 _embryo_toggleXXX(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
-   palTogglePad(IOPORT2, 5);
+   palTogglePad(GPIOC, GPIOC_LED_STATUS2);
 #else
    printf("toggle!\n");
 #endif

@@ -82,15 +82,8 @@ int main(void) {
 
   // allocate memory for first virtual machine
   vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
-
-  if(vm[0] == NULL){
-	  palClearPad(GPIOC, GPIOC_LED_STATUS2);
-  }else{
-	  palSetPad(GPIOC, GPIOC_LED_STATUS2);
-  }
-
-	vm->ep = embryo_program_load("test01.eaf");
-	vm->hook = NULL;
+  vm[0]->ep = embryo_program_load("test01.eaf");
+  vm[0]->hook = NULL;
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
@@ -104,3 +97,5 @@ int main(void) {
   }
 
 }
+
+

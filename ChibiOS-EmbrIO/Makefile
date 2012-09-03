@@ -112,6 +112,10 @@ TCSRC =
 #       option that results in lower performance and larger code size.
 TCPPSRC =
 
+# List all binary object
+BINOBJS = test01.o
+
+
 # List ASM source files here
 ASMSRC = $(PORTASM)
 
@@ -175,7 +179,7 @@ DADEFS =
 DINCDIR =
 
 # List the default directory to look for the libraries here
-DLIBDIR =
+DLIBDIR = 
 
 # List all default libraries here
 DLIBS =
