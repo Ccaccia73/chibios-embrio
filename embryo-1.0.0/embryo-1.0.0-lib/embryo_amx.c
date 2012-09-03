@@ -38,6 +38,7 @@
 
 #ifdef _CHIBIOS_VM_
 	#include "embrio.h"
+	#include "chprintf.h"
 	// #include "embrio_private.h"
 #endif
 
@@ -430,6 +431,20 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
 	fclose(f);
 	return ep;
 }
+
+#ifdef _CHIBIOS_VM_
+Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *end, unsigned char *size, BaseChannel *chp){
+
+	unsigned char *pblob = start;
+	while(pblob < end){
+		chprintf(chp,"%d: %02X\n", pblob - start, *pblob);
+		pblob++;
+	}
+	chprintf(chp,"size: %d\n", size);
+
+	return (Embryo_Program*)NULL;
+}
+#endif
 
 /**
  * Frees the given Embryo program.

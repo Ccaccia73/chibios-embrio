@@ -84,6 +84,7 @@ CSRC = $(PORTSRC) \
        $(EMBRYO_LIB_SRC) \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/syscalls.c \
+       $(CHIBIOS)/os/various/chprintf.c \
        main.c
 
 
@@ -113,6 +114,9 @@ TCSRC =
 TCPPSRC =
 
 # List all binary object
+
+# ATTENTION! rules.mk must add $(BINOBJS) in the rule generating *.elf file
+
 BINOBJS = test01.o
 
 
