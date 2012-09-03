@@ -31,6 +31,9 @@
 #include "embrio.h"
 #include "Embryo.h"
 
+
+EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
+
 /*
  * Green LED blinker thread, times are in milliseconds.
  */
@@ -77,6 +80,17 @@ int main(void) {
    */
   sdStart(&SD3, NULL);
 
+  // allocate memory for first virtual machine
+  vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
+
+  if(vm[0] == NULL){
+	  palClearPad(GPIOC, GPIOC_LED_STATUS2);
+  }else{
+	  palSetPad(GPIOC, GPIOC_LED_STATUS2);
+  }
+
+	vm->ep = embryo_program_load("test01.eaf");
+	vm->hook = NULL;
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
