@@ -41,6 +41,7 @@ Embryo_Native nc_buff[MAX_NATIVE_CALLS];
 MemoryHeap EVMM_mh;
 EmbrioVMManager EVMM_buff;
 
+
 static msg_t vm_thread(void *p) {
 	msg_t msg = RDY_OK;
 	Embryo_Status es;
@@ -103,6 +104,8 @@ void embrioHeapsSetup(void){
 	// initialize a memory heap to put the virtual machine manager
 	chHeapInit(&EVMM_mh, (void*)&EVMM_buff, sizeof(EmbrioVMManager) );
 
+	/// todo: define a specific heap for threads?
+
 }
 
 void embrioPoolsTest(void){
@@ -155,7 +158,7 @@ void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
 
 Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 	vm->state = EMBRIOVM_RUN;
-	return chThdCreateFromHeap(NULL, 4096, prio, vm_thread, (void *)vm);
+	return chThdCreateFromHeap(NULL, THD_WA_SIZE(512), prio, vm_thread, (void *)vm);
 }
 
 

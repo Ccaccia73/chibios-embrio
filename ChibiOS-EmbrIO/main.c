@@ -120,6 +120,7 @@ int main(void) {
   // insert VM in linked list of VMs
   embrioVMMinsert(vm_man, vm[0]);
 
+  vm[0]->tp = vmStart(&vm[0], NORMALPRIO);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except

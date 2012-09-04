@@ -26,3 +26,6 @@ Also note that not all the files present in the ST library are distributed
 with ChibiOS/RT, you can find the whole library on the ST web site:
 
                              http://www.st.com
+
+
+arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm hello1.eaf hello1.o 
