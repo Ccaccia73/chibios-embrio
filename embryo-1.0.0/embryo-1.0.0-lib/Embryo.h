@@ -147,7 +147,7 @@ EAPI Embryo_Program  *embryo_program_const_new(void *data, int size);
 EAPI Embryo_Program  *embryo_program_load(const char *file);
 
 #ifdef _CHIBIOS_VM_
-	Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *end, unsigned char *size, BaseChannel *chp);
+	Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *end, unsigned char *size, BaseChannel *chp, bool_t verbose);
 #endif
 
 EAPI void             embryo_program_free(Embryo_Program *ep);

@@ -37,6 +37,9 @@ Embryo_Cell prog_buff[MAX_CODE_SIZE];
 MemoryHeap nc_mh;
 Embryo_Native nc_buff[MAX_NATIVE_CALLS];
 
+// virtual machine manager
+MemoryHeap EVMM_mh;
+EmbrioVMManager EVMM_buff;
 
 static msg_t vm_thread(void *p) {
 	msg_t msg = RDY_OK;
@@ -97,6 +100,9 @@ void embrioHeapsSetup(void){
 	// initialize a memory heap to put the native calls
 	chHeapInit(&nc_mh, (void*)nc_buff, MAX_NATIVE_CALLS * sizeof(Embryo_Native));
 
+	// initialize a memory heap to put the virtual machine manager
+	chHeapInit(&EVMM_mh, (void*)&EVMM_buff, sizeof(EmbrioVMManager) );
+
 }
 
 void embrioPoolsTest(void){
@@ -140,6 +146,12 @@ void embrioPoolsTest(void){
 	vm->ep->max_run_cycles = 0;
 	vmCreate(vm, NORMALPRIO);
  */
+
+// inserts new virtual machine in linked list of machines
+void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
+	new_vm->vm_next = (void*)(vm_man->vm_first);
+	vm_man->vm_first = new_vm;
+}
 
 Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 	vm->state = EMBRIOVM_RUN;

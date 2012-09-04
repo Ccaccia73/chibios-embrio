@@ -31,7 +31,8 @@ struct _EmbrioVM {
 	Thread			*tp;
 	Embryo_Program	*ep;
 	Embrio_hook		hook;
-	int			hook_params;
+	int				hook_params;
+	void			*vm_next;
 /*
 	Embryo_Cell		pri;
 	Embryo_Cell		alt;
@@ -62,7 +63,7 @@ typedef struct _EmbrioVM EmbrioVM;
 typedef struct {
   EmbrioVMMstate_t	state;
   uint8_t			vm_count;
-  EmbrioVM			*vm_next;
+  EmbrioVM			*vm_first;
 } EmbrioVMManager;
 
 
@@ -107,6 +108,10 @@ extern Embryo_Cell prog_buff[MAX_CODE_SIZE];
 extern MemoryHeap nc_mh;
 extern Embryo_Native nc_buff[MAX_NATIVE_CALLS];
 
+// virtual machine manager
+extern MemoryHeap EVMM_mh;
+extern EmbrioVMManager EVMM_buff;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,6 +125,8 @@ extern "C" {
 	void embrioHeapsSetup(void);
 
 	void embrioPoolsPrealloc(void);
+
+	void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm);
 
 	Thread *vmStart(EmbrioVM *vm, tprio_t prio);
 	void embrio_vm_sleep(EmbrioVM *vmp);

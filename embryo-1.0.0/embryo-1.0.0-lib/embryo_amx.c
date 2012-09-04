@@ -435,15 +435,15 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
 }
 
 #ifdef _CHIBIOS_VM_
-Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *end, unsigned char *size, BaseChannel *chp){
-
+Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *end, unsigned char *size, BaseChannel *chp, bool_t verbose){
+	/* TEST:
 	palClearPad(GPIOC, GPIOC_LED_STATUS2);
 
 	unsigned char *pblob = start;
 	while(pblob < end){
 		chprintf(chp,"%d: %02X\r\n", pblob - start, *pblob);
 		pblob++;
-		palTogglePad(GPIOC, GPIOC_LED_STATUS1);
+		palTogglePad(GPIOC, GPIOC_LED_STATUS2);
 		chThdSleepMilliseconds(100);
 	}
 	chprintf(chp,"size: %d\r\n", size);
@@ -451,6 +451,50 @@ Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *e
 	palClearPad(GPIOC, GPIOC_LED_STATUS2);
 
 	return (Embryo_Program*)NULL;
+	*/
+
+	Embryo_Program *ep;
+	Embryo_Header hdr;
+
+	int program_size = size;
+
+	void *program = NULL;
+
+	if (start == NULL){
+		if(verbose){
+			chprintf(chp,"EP: NULL start pointer");
+			chprintf(chp,"\r");
+			chprintf(chp,"\n");
+		}
+		return NULL ;
+	}
+
+	if (program_size < (int)sizeof(Embryo_Header)) {
+		if(verbose){
+			chprintf(chp,"EP: Size too small");
+			chprintf(chp,"\r");
+			chprintf(chp,"\n");
+		}
+		return NULL ;
+	}
+	/*
+	if (fread(&hdr, sizeof(Embryo_Header), 1, f) != 1) {
+		fclose(f);
+		return NULL ;
+	}
+	*/
+	memcpy(&hdr, (void*)start, sizeof(Embryo_Header));
+
+#ifdef WORDS_BIGENDIAN
+	embryo_swap_32((unsigned int *)(&hdr.size));
+#endif
+	if ((int) hdr.size < program_size){
+		program_size = hdr.size;
+	}
+
+	ep = embryo_program_new((void*)start, program_size);
+
+	return ep;
 }
 #endif
 

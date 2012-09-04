@@ -9,6 +9,7 @@
 	#include "halconf.h"
 	#include "ch.h"
 	#include "hal.h"
+	#include "chprintf.h"
 #else
 	#include <stdio.h>
 	#if ( defined __MINGW32__ ) || ( defined __MINGW64__ )
@@ -63,7 +64,7 @@ _embryo_printXXX_printXXX(Embryo_Program *ep, Embryo_Cell *params)
 	STRGET(ep, s, params[1]);
 #ifdef _CHIBIOS_VM_
 	/// TODO : add print on serial port
-	// debug_printf("%s\n", s);
+	chprintf((BaseChannel*)&SD3, "%s",s);
 #else
 	printf("Stringa: %s\n", s);
 #endif
