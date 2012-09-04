@@ -39,6 +39,8 @@
 #ifdef _CHIBIOS_VM_
 	#include "embrio.h"
 	#include "chprintf.h"
+	#include "ch.h"
+	#include "hal.h"
 	// #include "embrio_private.h"
 #endif
 
@@ -435,12 +437,18 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
 #ifdef _CHIBIOS_VM_
 Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *end, unsigned char *size, BaseChannel *chp){
 
+	palClearPad(GPIOC, GPIOC_LED_STATUS2);
+
 	unsigned char *pblob = start;
 	while(pblob < end){
-		chprintf(chp,"%d: %02X\n", pblob - start, *pblob);
+		chprintf(chp,"%d: %02X\r\n", pblob - start, *pblob);
 		pblob++;
+		palTogglePad(GPIOC, GPIOC_LED_STATUS1);
+		chThdSleepMilliseconds(100);
 	}
-	chprintf(chp,"size: %d\n", size);
+	chprintf(chp,"size: %d\r\n", size);
+
+	palClearPad(GPIOC, GPIOC_LED_STATUS2);
 
 	return (Embryo_Program*)NULL;
 }

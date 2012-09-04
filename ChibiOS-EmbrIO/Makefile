@@ -117,7 +117,8 @@ TCPPSRC =
 
 # ATTENTION! rules.mk must add $(BINOBJS) in the rule generating *.elf file
 
-BINOBJS = test01.o
+BINOBJS =	test01.o \
+			blob.o
 
 
 # List ASM source files here

@@ -38,6 +38,11 @@ extern unsigned char _binary_test01_eaf_start;
 extern unsigned char _binary_test01_eaf_end;
 extern unsigned char _binary_test01_eaf_size;
 
+extern unsigned char _binary_blob_bin_start;
+extern unsigned char _binary_blob_bin_end;
+extern unsigned char _binary_blob_bin_size;
+
+
 /*
  * Green LED blinker thread, times are in milliseconds.
  */
@@ -87,7 +92,7 @@ int main(void) {
   // allocate memory for first virtual machine
   vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
   // vm[0]->ep = embryo_program_load("test01.eaf");
-  vm[0]->ep = embryo_program_load_local(&_binary_test01_eaf_start, &_binary_test01_eaf_end, &_binary_test01_eaf_size, (BaseChannel*)&SD3);
+  vm[0]->ep = embryo_program_load_local(&_binary_blob_bin_start, &_binary_blob_bin_end, &_binary_blob_bin_size, (BaseChannel*)&SD3);
   vm[0]->hook = NULL;
 
   /*
