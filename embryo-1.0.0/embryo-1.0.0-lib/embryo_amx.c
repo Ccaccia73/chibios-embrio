@@ -456,9 +456,9 @@ Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *e
 	Embryo_Program *ep;
 	Embryo_Header hdr;
 
-	int program_size = size;
+	int program_size = *size;
 
-	void *program = NULL;
+	// void *program = NULL;
 
 	if (start == NULL){
 		if(verbose){

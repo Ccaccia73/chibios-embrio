@@ -40,6 +40,15 @@ extern unsigned char _binary_test01_eaf_start;
 extern unsigned char _binary_test01_eaf_end;
 extern unsigned char _binary_test01_eaf_size;
 
+extern unsigned char _binary_hello1_eaf_start;
+extern unsigned char _binary_hello1_eaf_end;
+extern unsigned char _binary_hello1_eaf_size;
+
+extern unsigned char _binary_hello2_eaf_start;
+extern unsigned char _binary_hello2_eaf_end;
+extern unsigned char _binary_hello2_eaf_size;
+
+
 /* TEST
 extern unsigned char _binary_blob_bin_start;
 extern unsigned char _binary_blob_bin_end;
@@ -81,7 +90,7 @@ int main(void) {
   /*
    * Creates the blinker thread.
    */
-  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+  // chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
 
 
   embryo_init();
@@ -106,7 +115,7 @@ int main(void) {
   // vm[0]->ep = embryo_program_load("test01.eaf");
   // load program
   // vm[0]->ep = embryo_program_load_local(&_binary_blob_bin_start, &_binary_blob_bin_end, &_binary_blob_bin_size, (BaseChannel*)&SD3, TRUE);
-  vm[0]->ep = embryo_program_load_local(&_binary_test01_eaf_start, &_binary_test01_eaf_end, &_binary_test01_eaf_size, (BaseChannel*)&SD3, TRUE);
+  vm[0]->ep = embryo_program_load_local(&_binary_hello1_eaf_start, &_binary_hello1_eaf_end, &_binary_hello1_eaf_size, (BaseChannel*)&SD3, TRUE);
   vm[0]->hook = NULL;
 
   if(vm[0]->ep == NULL){
@@ -120,12 +129,14 @@ int main(void) {
   // insert VM in linked list of VMs
   embrioVMMinsert(vm_man, vm[0]);
 
-  vm[0]->tp = vmStart(&vm[0], NORMALPRIO);
+  vm[0]->tp = vmStart(vm[0], NORMALPRIO);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
    * sleeping in a loop and check the button state.
    */
+
+  // sdWrite(&SD3,"pippo\n",strlen("pippo\n"));
 
   while (TRUE) {
     if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0)

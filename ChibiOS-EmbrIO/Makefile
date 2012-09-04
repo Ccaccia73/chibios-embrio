@@ -117,7 +117,9 @@ TCPPSRC =
 
 # ATTENTION! rules.mk must add $(BINOBJS) in the rule generating *.elf file
 
-BINOBJS =	test01.o
+BINOBJS =	test01.o \
+			hello1.o \
+			hello2.o
 
 #			blob.o
 

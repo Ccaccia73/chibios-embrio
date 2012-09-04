@@ -24,6 +24,9 @@ int Estp_pool[MAX_EMBRIO_VM_NUM];
 
 int currVM = 0;
 
+MemoryPool THD_mp;
+
+
 // Memory heaps
 // code
 MemoryHeap code_mh;
@@ -43,14 +46,26 @@ EmbrioVMManager EVMM_buff;
 
 
 static msg_t vm_thread(void *p) {
-	msg_t msg = RDY_OK;
+	// msg_t msg = RDY_OK;
 	Embryo_Status es;
 	EmbrioVM *vmp = (EmbrioVM *)p;
 	int tmp;
 
 	embryo_program_vm_push(vmp->ep);
-	//  tmp = embryo_program_function_find(vmp->ep, "@test");
-	//  tmp = embryo_program_function_find(vmp->ep, "@event");
+
+	// verify that we found the functions
+	tmp = embryo_program_function_find(vmp->ep, "@test");
+
+	if(tmp != EMBRYO_FUNCTION_NONE){
+		palSetPad(GPIOC, GPIOC_LED_STATUS1);
+	}
+
+	tmp = embryo_program_function_find(vmp->ep, "@event");
+
+	if(tmp != EMBRYO_FUNCTION_NONE){
+		palSetPad(GPIOC, GPIOC_LED_STATUS2);
+	}
+
 	es = embryo_program_run(vmp, EMBRYO_FUNCTION_MAIN);
 	//  es = embryo_program_run(vmp, embryo_program_function_find(vmp->ep, "@event"));
 
@@ -58,7 +73,7 @@ static msg_t vm_thread(void *p) {
 
 	}
 
-	return msg;
+	return (msg_t)es;
 }
 
 /**
@@ -66,12 +81,11 @@ static msg_t vm_thread(void *p) {
  */
 void embrioInit(void) {
 
-
 	embrioPoolsSetup();
 
 	embrioHeapsSetup();
 
-	embrioPoolsTest();
+	embrioPoolsPrealloc();
 
 }
 
@@ -88,6 +102,10 @@ void embrioPoolsSetup(void){
 
 	// Stack Top: the dimension of stack top is an int
 	chPoolInit( &Estp_mp, sizeof(int), NULL);
+
+	// thread used for VMs (we use chCoreAlloc to avoid freeing in advance)
+	/// todo: verify that chCoreAlloc is ok and we don't want to free
+	chPoolInit( &THD_mp, THD_WA_SIZE(THD_SIZE), chCoreAlloc);
 
 }
 
@@ -108,7 +126,7 @@ void embrioHeapsSetup(void){
 
 }
 
-void embrioPoolsTest(void){
+void embrioPoolsPrealloc(void){
 
 	int i;
 	// test
@@ -158,7 +176,8 @@ void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
 
 Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 	vm->state = EMBRIOVM_RUN;
-	return chThdCreateFromHeap(NULL, THD_WA_SIZE(512), prio, vm_thread, (void *)vm);
+	return chThdCreateFromMemoryPool(&THD_mp, prio, vm_thread, (void*)vm);
+	// return chThdCreateFromHeap(NULL, THD_WA_SIZE(512), prio, vm_thread, (void *)vm);
 }
 
 
@@ -166,7 +185,7 @@ void embrio_vm_sleep(EmbrioVM *vmp) {
 
 	vmp->state = EMBRIOVM_SLEEP;
 	vmp->hook = NULL;
-	vmp->hook_params = NULL;
+	vmp->hook_params = EMBRYO_FUNCTION_NONE;
 
 	chThdSleep(TIME_INFINITE);
 }
@@ -184,7 +203,7 @@ void embrio_native_call(EmbrioVM *vmp) {
 
 	_embryo_native_call(vmp->ep, vmp->hook_params, &(vmp->ep->pri), (Embryo_Cell *)(vmp->ep->data + (int)vmp->ep->stk));
 	vmp->hook = NULL;
-	vmp->hook_params = NULL;
+	vmp->hook_params = EMBRYO_FUNCTION_NONE;
 }
 
 void embrio_call(EmbrioVM *vmp) {
@@ -194,7 +213,7 @@ void embrio_call(EmbrioVM *vmp) {
 	Embryo_Status es;
 
 	vmp->hook = NULL;
-	vmp->hook_params = NULL;
+	vmp->hook_params = EMBRYO_FUNCTION_NONE;
 	tmpvm = *vmp;
 	//	memcpy(&tmpvm, vmp, sizeof(EmbrioVM));
 	ep = tmpvm.ep;

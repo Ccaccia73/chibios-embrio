@@ -31,7 +31,7 @@ struct _EmbrioVM {
 	Thread			*tp;
 	Embryo_Program	*ep;
 	Embrio_hook		hook;
-	int				hook_params;
+	int			hook_params;
 	void			*vm_next;
 /*
 	Embryo_Cell		pri;
@@ -84,12 +84,20 @@ extern EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
 extern MemoryPool Estp_mp;
 extern int Estp_pool[MAX_EMBRIO_VM_NUM];
 
+
+// array defining the Thread used for running VMs
+// size of thread (used for macro THD_WA_SIZE)
+#define THD_SIZE 512
+
+extern MemoryPool THD_mp;
+// extern Thread THD_pool[MAX_EMBRIO_VM_NUM];
+
 // variable defining the actual VM used
 extern int currVM;
 
 
 // max number of embryo cells used for code
-#define MAX_CODE_SIZE 256
+#define MAX_CODE_SIZE 1024
 
 
 // heap and buffer used to load the code
