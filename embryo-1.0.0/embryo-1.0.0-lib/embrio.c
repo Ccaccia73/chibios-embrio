@@ -150,29 +150,6 @@ void embrioHeapAlloc(void){
 	// allocate memory for VM manager structure
 	vm_man = (EmbrioVMManager*)chHeapAlloc(&embrio_mh, sizeof(EmbrioVMManager));
 
-	palClearPad(GPIOC, YELLOW_LED);
-	palClearPad(GPIOC, GREEN_LED);
-
-	if(vm_man == NULL){
-		chThdSleepMilliseconds(50);
-		palSetPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(500);
-		palSetPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(500);
-		palClearPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(500);
-		palClearPad( GPIOC, YELLOW_LED);
-	}else{
-		chThdSleepMilliseconds(50);
-		palSetPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(500);
-		palSetPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(500);
-		palClearPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(500);
-		palClearPad( GPIOC, GREEN_LED);
-	}
-
 }
 
 /*
@@ -190,6 +167,7 @@ void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
 
 Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 	vm->state = EMBRIOVM_RUN;
+	fixme
 	return chThdCreateFromMemoryPool(&THD_mp, prio, vm_thread, (void*)vm);
 	// return chThdCreateFromHeap(NULL, THD_WA_SIZE(512), prio, vm_thread, (void *)vm);
 }

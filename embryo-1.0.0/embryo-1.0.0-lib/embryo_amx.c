@@ -369,6 +369,8 @@ EAPI Embryo_Program *embryo_program_const_new(void *data, int size)
 }
 #endif
 
+// FIXME: load standard
+#ifndef _CHIBIOS_VM_
 /**
  * Creates a new Embryo program based on the bytecode data stored in the
  * given file.
@@ -433,10 +435,10 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
 	fclose(f);
 	return ep;
 }
-
-#ifdef _CHIBIOS_VM_
+#else
 Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *end, unsigned char *size, BaseChannel *chp, bool_t verbose){
 
+	/*
 	// TEST:
 	palClearPad(GPIOC, GPIOC_LED_STATUS2);
 
@@ -448,33 +450,30 @@ Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *e
 		chThdSleepMilliseconds(100);
 	}
 	chprintf(chp,"size: %d\r\n", size);
+	chprintf(chp,"size: %d\r\n", *size);
 
 	palClearPad(GPIOC, GPIOC_LED_STATUS2);
 
 	return (Embryo_Program*)NULL;
+	*/
 
-	/*
 	Embryo_Program *ep;
 	Embryo_Header hdr;
 
-	int program_size = *size;
+	int program_size = end - start;
 
 	// void *program = NULL;
 
 	if (start == NULL){
 		if(verbose){
-			chprintf(chp,"EP: NULL start pointer");
-			chprintf(chp,"\r");
-			chprintf(chp,"\n");
+			chprintf(chp,"EP: NULL start pointer\r\n");
 		}
 		return NULL ;
 	}
 
 	if (program_size < (int)sizeof(Embryo_Header)) {
 		if(verbose){
-			chprintf(chp,"EP: Size too small");
-			chprintf(chp,"\r");
-			chprintf(chp,"\n");
+			chprintf(chp,"EP: Size too small\r\n");
 		}
 		return NULL ;
 	}
@@ -496,7 +495,7 @@ Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *e
 	ep = embryo_program_new((void*)start, program_size);
 
 	return ep;
-	*/
+
 }
 #endif
 
