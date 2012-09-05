@@ -180,6 +180,7 @@ void embrioPoolsPrealloc(void){
 void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
 	new_vm->vm_next = (void*)(vm_man->vm_first);
 	vm_man->vm_first = new_vm;
+	vm_man->vm_count++;
 }
 
 Thread *vmStart(EmbrioVM *vm, tprio_t prio) {

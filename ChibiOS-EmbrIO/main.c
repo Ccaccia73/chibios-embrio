@@ -33,11 +33,11 @@
 #include "Embryo.h"
 
 
-
+/*
 extern unsigned char _binary_test01_eaf_start;
 extern unsigned char _binary_test01_eaf_end;
 extern unsigned char _binary_test01_eaf_size;
-
+*/
 extern unsigned char _binary_hello1_eaf_start;
 extern unsigned char _binary_hello1_eaf_end;
 extern unsigned char _binary_hello1_eaf_size;
@@ -75,76 +75,85 @@ static msg_t Thread1(void *arg) {
  */
 int main(void) {
 
-  /*
-   * System initializations.
-   * - HAL initialization, this also initializes the configured device drivers
-   *   and performs the board-specific initializations.
-   * - Kernel initialization, the main() function becomes a thread and the
-   *   RTOS is active.
-   */
-  halInit();
-  chSysInit();
+	/*
+	 * System initializations.
+	 * - HAL initialization, this also initializes the configured device drivers
+	 *   and performs the board-specific initializations.
+	 * - Kernel initialization, the main() function becomes a thread and the
+	 *   RTOS is active.
+	 */
+	halInit();
+	chSysInit();
 
-  /*
-   * Creates the blinker thread.
-   */
-  // chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
-
-
-  embryo_init();
-  embrioInit();
-
-  /*
-   * Activates the serial driver 3 using the driver default configuration.
-   */
-  sdStart(&SD3, NULL);
+	/*
+	 * Creates the blinker thread.
+	 */
+	// chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
 
 
-  // allocate memory for VM Manager
+	embryo_init();
+	embrioInit();
 
-  if(vm_man == NULL){
-
-  }else{
-	  vm_man->vm_count = 0;
-	  vm_man->vm_first = NULL;
-	  vm_man->state = EMBRIOVMM_STOP;
-  }
+	/*
+	 * Activates the serial driver 3 using the driver default configuration.
+	 */
+	sdStart(&SD3, NULL);
 
 
-  // vm[0]->ep = embryo_program_load("test01.eaf");
-  // load program
-  // vm[0]->ep = embryo_program_load_local(&_binary_blob_bin_start, &_binary_blob_bin_end, &_binary_blob_bin_size, (BaseChannel*)&SD3, TRUE);
+	// switch off the leds
+	palClearPad(GPIOC, GPIOC_LED_STATUS1);
+	palClearPad(GPIOC, GPIOC_LED_STATUS2);
 
-  // vm[0]->ep = embryo_program_load_local(&_binary_hello2_eaf_start, &_binary_hello2_eaf_end, &_binary_hello2_eaf_size, (BaseChannel*)&SD3, TRUE);
+	if(vm_man == NULL){
+		chThdSleepMilliseconds(100);
+		palSetPad(GPIOC, GPIOC_LED_STATUS2);
+		chThdSleepMilliseconds(1000);
+		palClearPad(GPIOC, GPIOC_LED_STATUS2);
+		chprintf((BaseChannel*)&SD3,"VMM NO\r\n");
+	}else{
+		chThdSleepMilliseconds(100);
+		palSetPad(GPIOC, GPIOC_LED_STATUS1);
+		chThdSleepMilliseconds(1000);
+		palClearPad(GPIOC, GPIOC_LED_STATUS1);
+		vm_man->vm_count = 0;
+		vm_man->vm_first = NULL;
+		vm_man->state = EMBRIOVMM_STOP;
+		chprintf((BaseChannel*)&SD3,"VMM Y\r\n");
+	}
 
 
-  if(vm[0]->ep == NULL){
-	  chprintf((BaseChannel*)&SD3,"Error: VM 0 not created!\r\n");
-	  vm[0]->state = EMBRIOVM_FAIL;
-  }else{
-	  chprintf((BaseChannel*)&SD3,"VM 0 created!\r\n");
-	  vm[0]->hook = NULL;
-	  // insert VM in linked list of VMs
-	  embrioVMMinsert(vm_man, vm[0]);
+	// vm[0]->ep = embryo_program_load("test01.eaf");
+	// load program
+	// vm[0]->ep = embryo_program_load_local(&_binary_blob_bin_start, &_binary_blob_bin_end, &_binary_blob_bin_size, (BaseChannel*)&SD3, TRUE);
 
-	  vm[0]->tp = vmStart(vm[0], NORMALPRIO);
-  }
+	// vm[0]->ep = embryo_program_load_local(&_binary_hello2_eaf_start, &_binary_hello2_eaf_end, &_binary_hello2_eaf_size, (BaseChannel*)&SD3, TRUE);
+
+	/*
+	if(vm[0]->ep == NULL){
+		chprintf((BaseChannel*)&SD3,"Error: VM 0 not created!\r\n");
+		vm[0]->state = EMBRIOVM_FAIL;
+	}else{
+		chprintf((BaseChannel*)&SD3,"VM 0 created!\r\n");
+		vm[0]->hook = NULL;
+		// insert VM in linked list of VMs
+		embrioVMMinsert(vm_man, vm[0]);
+		// vm[0]->tp = vmStart(vm[0], NORMALPRIO);
+	}
+	*/
+
+	/*
+	 * Normal main() thread activity, in this demo it does nothing except
+	 * sleeping in a loop and check the button state.
+	 */
+
+	// sdWrite(&SD3,"pippo\n",strlen("pippo\n"));
 
 
-
-  /*
-   * Normal main() thread activity, in this demo it does nothing except
-   * sleeping in a loop and check the button state.
-   */
-
-  // sdWrite(&SD3,"pippo\n",strlen("pippo\n"));
-
-  while (TRUE) {
-    if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0)
-      TestThread(&SD3);
-    chThdSleepMilliseconds(500);
-  }
-
+	while (TRUE) {
+		if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0){
+			// TestThread(&SD3);
+			palTogglePad(GPIOC, GPIOC_LED_STATUS1);
+		}
+		chThdSleepMilliseconds(100);
+	}
 }
-
-
