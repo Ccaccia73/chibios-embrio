@@ -43,7 +43,8 @@ Embryo_Native nc_buff[MAX_NATIVE_CALLS];
 // virtual machine manager
 MemoryHeap EVMM_mh;
 EmbrioVMManager EVMM_buff;
-
+EmbrioVMManager *vm_man;
+EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 
 static msg_t vm_thread(void *p) {
 	// msg_t msg = RDY_OK;
@@ -121,6 +122,13 @@ void embrioHeapsSetup(void){
 
 	// initialize a memory heap to put the virtual machine manager
 	chHeapInit(&EVMM_mh, (void*)&EVMM_buff, sizeof(EmbrioVMManager) );
+
+	vm_man = (EmbrioVMManager*)chHeapAlloc(&EVMM_mh, sizeof(EmbrioVMManager));
+
+	// allocate memory for first virtual machine
+	vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
+
+
 
 	/// todo: define a specific heap for threads?
 

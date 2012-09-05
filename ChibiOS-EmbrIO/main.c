@@ -33,8 +33,6 @@
 #include "Embryo.h"
 
 
-EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
-EmbrioVMManager *vm_man;
 
 extern unsigned char _binary_test01_eaf_start;
 extern unsigned char _binary_test01_eaf_end;
@@ -103,33 +101,36 @@ int main(void) {
 
 
   // allocate memory for VM Manager
-  vm_man = (EmbrioVMManager*)chHeapAlloc(&EVMM_mh, sizeof(EmbrioVMManager));
-  vm_man->vm_count = 0;
-  vm_man->vm_first = NULL;
-  vm_man->state = EMBRIOVMM_STOP;
+
+  if(vm_man == NULL){
+
+  }else{
+	  vm_man->vm_count = 0;
+	  vm_man->vm_first = NULL;
+	  vm_man->state = EMBRIOVMM_STOP;
+  }
 
 
-
-  // allocate memory for first virtual machine
-  vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
   // vm[0]->ep = embryo_program_load("test01.eaf");
   // load program
   // vm[0]->ep = embryo_program_load_local(&_binary_blob_bin_start, &_binary_blob_bin_end, &_binary_blob_bin_size, (BaseChannel*)&SD3, TRUE);
-  vm[0]->ep = embryo_program_load_local(&_binary_hello1_eaf_start, &_binary_hello1_eaf_end, &_binary_hello1_eaf_size, (BaseChannel*)&SD3, TRUE);
-  vm[0]->hook = NULL;
+
+  // vm[0]->ep = embryo_program_load_local(&_binary_hello2_eaf_start, &_binary_hello2_eaf_end, &_binary_hello2_eaf_size, (BaseChannel*)&SD3, TRUE);
+
 
   if(vm[0]->ep == NULL){
 	  chprintf((BaseChannel*)&SD3,"Error: VM 0 not created!\r\n");
 	  vm[0]->state = EMBRIOVM_FAIL;
   }else{
 	  chprintf((BaseChannel*)&SD3,"VM 0 created!\r\n");
-	  vm[0]->state = EMBRIOVM_STOP;
+	  vm[0]->hook = NULL;
+	  // insert VM in linked list of VMs
+	  embrioVMMinsert(vm_man, vm[0]);
+
+	  vm[0]->tp = vmStart(vm[0], NORMALPRIO);
   }
 
-  // insert VM in linked list of VMs
-  embrioVMMinsert(vm_man, vm[0]);
 
-  vm[0]->tp = vmStart(vm[0], NORMALPRIO);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except

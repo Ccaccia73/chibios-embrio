@@ -436,7 +436,8 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
 
 #ifdef _CHIBIOS_VM_
 Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *end, unsigned char *size, BaseChannel *chp, bool_t verbose){
-	/* TEST:
+
+	// TEST:
 	palClearPad(GPIOC, GPIOC_LED_STATUS2);
 
 	unsigned char *pblob = start;
@@ -451,8 +452,8 @@ Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *e
 	palClearPad(GPIOC, GPIOC_LED_STATUS2);
 
 	return (Embryo_Program*)NULL;
-	*/
 
+	/*
 	Embryo_Program *ep;
 	Embryo_Header hdr;
 
@@ -477,12 +478,12 @@ Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *e
 		}
 		return NULL ;
 	}
-	/*
-	if (fread(&hdr, sizeof(Embryo_Header), 1, f) != 1) {
-		fclose(f);
-		return NULL ;
-	}
-	*/
+
+	// if (fread(&hdr, sizeof(Embryo_Header), 1, f) != 1) {
+	//	fclose(f);
+	//	return NULL ;
+	//}
+
 	memcpy(&hdr, (void*)start, sizeof(Embryo_Header));
 
 #ifdef WORDS_BIGENDIAN
@@ -495,6 +496,7 @@ Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *e
 	ep = embryo_program_new((void*)start, program_size);
 
 	return ep;
+	*/
 }
 #endif
 

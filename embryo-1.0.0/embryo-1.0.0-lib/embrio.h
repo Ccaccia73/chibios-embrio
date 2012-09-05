@@ -87,7 +87,7 @@ extern int Estp_pool[MAX_EMBRIO_VM_NUM];
 
 // array defining the Thread used for running VMs
 // size of thread (used for macro THD_WA_SIZE)
-#define THD_SIZE 512
+#define THD_SIZE 2048
 
 extern MemoryPool THD_mp;
 // extern Thread THD_pool[MAX_EMBRIO_VM_NUM];
@@ -119,7 +119,9 @@ extern Embryo_Native nc_buff[MAX_NATIVE_CALLS];
 // virtual machine manager
 extern MemoryHeap EVMM_mh;
 extern EmbrioVMManager EVMM_buff;
+extern EmbrioVMManager *vm_man;
 
+extern EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 
 #ifdef __cplusplus
 extern "C" {
