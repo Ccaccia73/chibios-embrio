@@ -27,10 +27,12 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "board.h"
 #include "test.h"
 #include "chprintf.h"
 #include "embrio.h"
 #include "Embryo.h"
+
 
 
 /*
@@ -101,20 +103,20 @@ int main(void) {
 
 
 	// switch off the leds
-	palClearPad(GPIOC, GPIOC_LED_STATUS1);
-	palClearPad(GPIOC, GPIOC_LED_STATUS2);
+	palClearPad(GPIOC, GREEN_LED);
+	palClearPad(GPIOC, YELLOW_LED);
 
 	if(vm_man == NULL){
 		chThdSleepMilliseconds(100);
-		palSetPad(GPIOC, GPIOC_LED_STATUS2);
+		palSetPad(GPIOC, YELLOW_LED);
 		chThdSleepMilliseconds(1000);
-		palClearPad(GPIOC, GPIOC_LED_STATUS2);
+		palClearPad(GPIOC, YELLOW_LED);
 		chprintf((BaseChannel*)&SD3,"VMM NO\r\n");
 	}else{
 		chThdSleepMilliseconds(100);
-		palSetPad(GPIOC, GPIOC_LED_STATUS1);
+		palSetPad(GPIOC, GREEN_LED);
 		chThdSleepMilliseconds(1000);
-		palClearPad(GPIOC, GPIOC_LED_STATUS1);
+		palClearPad(GPIOC, GREEN_LED);
 		vm_man->vm_count = 0;
 		vm_man->vm_first = NULL;
 		vm_man->state = EMBRIOVMM_STOP;
@@ -152,7 +154,7 @@ int main(void) {
 	while (TRUE) {
 		if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0){
 			// TestThread(&SD3);
-			palTogglePad(GPIOC, GPIOC_LED_STATUS1);
+			palTogglePad(GPIOC, GREEN_LED);
 		}
 		chThdSleepMilliseconds(100);
 	}

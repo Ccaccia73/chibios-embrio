@@ -309,7 +309,7 @@ EAPI Embryo_Program *embryo_program_new(void *data, int size)
 	
 #ifdef _CHIBIOS_VM_
 	// code_data = (void*)chCoreAlloc(size);
-	code_data = chHeapAlloc(&code_mh, (size_t)size);
+	code_data = chHeapAlloc(&embrio_mh, (size_t)size);
 #else
 	code_data = malloc(size);
 #endif
@@ -407,7 +407,7 @@ EAPI Embryo_Program *embryo_program_load(const char *file)
 		program_size = hdr.size;
 	}
 #ifdef _CHIBIOS_VM_
-	program = chHeapAlloc(&prog_mh, program_size);
+	program = chHeapAlloc(&embrio_mh, program_size);
 #else
 	program = malloc(program_size);
 #endif
@@ -587,7 +587,7 @@ EAPI void embryo_program_native_call_add(Embryo_Program *ep, const char *name, E
 		ep->native_calls_alloc += 32;
 #ifdef _CHIBIOS_VM_
 		// calls = (Embryo_Native*)chCoreAlloc(ep->native_calls_alloc * sizeof(Embryo_Native));
-		calls = (Embryo_Native*)chHeapAlloc(&nc_mh, sizeof(Embryo_Native) * ep->native_calls_alloc);
+		calls = (Embryo_Native*)chHeapAlloc(&embrio_mh, sizeof(Embryo_Native) * ep->native_calls_alloc);
 #else
 		calls = realloc(ep->native_calls,
 				ep->native_calls_alloc * sizeof(Embryo_Native));

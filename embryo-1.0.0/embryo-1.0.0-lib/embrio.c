@@ -7,6 +7,7 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "board.h"
 #include "embrio.h"
 #include "embrio_private.h"
 #include "embryo_private.h"
@@ -27,22 +28,12 @@ int currVM = 0;
 MemoryPool THD_mp;
 
 
-// Memory heaps
-// code
-MemoryHeap code_mh;
-Embryo_Cell code_buff[MAX_CODE_SIZE];
+// global Memory Heap for embrio elements
+MemoryHeap embrio_mh;
 
-// program
-MemoryHeap prog_mh;
-Embryo_Cell prog_buff[MAX_CODE_SIZE];
+// 4kb of buffer for embrio heap elements
+stkalign_t embrio_buff[EMBRIO_HEAP_SIZE  / sizeof(stkalign_t)];
 
-// native calls
-MemoryHeap nc_mh;
-Embryo_Native nc_buff[MAX_NATIVE_CALLS];
-
-// virtual machine manager
-MemoryHeap EVMM_mh;
-EmbrioVMManager EVMM_buff;
 EmbrioVMManager *vm_man;
 EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 
@@ -84,12 +75,15 @@ void embrioInit(void) {
 
 	embrioPoolsSetup();
 
-	embrioHeapsSetup();
+	embrioHeapSetup();
 
 	embrioPoolsPrealloc();
 
+	embrioHeapAlloc();
+
 }
 
+stkalign_t pippo;
 
 void embrioPoolsSetup(void){
 	// initialize and preload the blocks
@@ -110,27 +104,9 @@ void embrioPoolsSetup(void){
 
 }
 
-void embrioHeapsSetup(void){
-	// initialize a memory heap to put the code
-	chHeapInit(&code_mh, (void*)code_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
-
-	// initialize a memory heap to load the program (the heap is freed after the code is copied
-	chHeapInit(&prog_mh, (void*)prog_buff, MAX_CODE_SIZE * sizeof(Embryo_Cell) );
-
-	// initialize a memory heap to put the native calls
-	chHeapInit(&nc_mh, (void*)nc_buff, MAX_NATIVE_CALLS * sizeof(Embryo_Native));
-
-	// initialize a memory heap to put the virtual machine manager
-	chHeapInit(&EVMM_mh, (void*)&EVMM_buff, sizeof(EmbrioVMManager) );
-
-	vm_man = (EmbrioVMManager*)chHeapAlloc(&EVMM_mh, sizeof(EmbrioVMManager));
-
-	// allocate memory for first virtual machine
-	vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
-
-
-
-	/// todo: define a specific heap for threads?
+void embrioHeapSetup(void){
+	// initialize a memory heap for embrio
+	chHeapInit(&embrio_mh, (void*)embrio_buff, sizeof(embrio_buff) );
 
 }
 
@@ -143,7 +119,6 @@ void embrioPoolsPrealloc(void){
 	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
 		chPoolFree(&EP_mp, (void*)(&EP_pool[i]));
 	}
-
 
 	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
 		chPoolFree(&EVM_mp, (void*)(&EVM_pool[i]));
@@ -167,6 +142,36 @@ void embrioPoolsPrealloc(void){
 
 	chPoolFree(&EP_mp, (void*)(&EP_pool[0]));
 	*/
+
+}
+
+void embrioHeapAlloc(void){
+
+	// allocate memory for VM manager structure
+	vm_man = (EmbrioVMManager*)chHeapAlloc(&embrio_mh, sizeof(EmbrioVMManager));
+
+	palClearPad(GPIOC, YELLOW_LED);
+	palClearPad(GPIOC, GREEN_LED);
+
+	if(vm_man == NULL){
+		chThdSleepMilliseconds(50);
+		palSetPad( GPIOC, YELLOW_LED);
+		chThdSleepMilliseconds(500);
+		palSetPad( GPIOC, GREEN_LED);
+		chThdSleepMilliseconds(500);
+		palClearPad( GPIOC, GREEN_LED);
+		chThdSleepMilliseconds(500);
+		palClearPad( GPIOC, YELLOW_LED);
+	}else{
+		chThdSleepMilliseconds(50);
+		palSetPad( GPIOC, GREEN_LED);
+		chThdSleepMilliseconds(500);
+		palSetPad( GPIOC, YELLOW_LED);
+		chThdSleepMilliseconds(500);
+		palClearPad( GPIOC, YELLOW_LED);
+		chThdSleepMilliseconds(500);
+		palClearPad( GPIOC, GREEN_LED);
+	}
 
 }
 

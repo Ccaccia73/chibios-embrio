@@ -84,6 +84,10 @@ extern EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
 extern MemoryPool Estp_mp;
 extern int Estp_pool[MAX_EMBRIO_VM_NUM];
 
+// variable defining the actual VM used
+extern int currVM;
+
+
 
 // array defining the Thread used for running VMs
 // size of thread (used for macro THD_WA_SIZE)
@@ -92,35 +96,17 @@ extern int Estp_pool[MAX_EMBRIO_VM_NUM];
 extern MemoryPool THD_mp;
 // extern Thread THD_pool[MAX_EMBRIO_VM_NUM];
 
-// variable defining the actual VM used
-extern int currVM;
 
 
-// max number of embryo cells used for code
-#define MAX_CODE_SIZE 1024
+#define EMBRIO_HEAP_SIZE 2048
 
+// global Memory Heap for embrio elements
+extern MemoryHeap embrio_mh;
 
-// heap and buffer used to load the code
-extern MemoryHeap code_mh;
-extern Embryo_Cell code_buff[MAX_CODE_SIZE];
+// 4kb of buffer for embrio heap elements
+extern stkalign_t embrio_buff[EMBRIO_HEAP_SIZE  / sizeof(stkalign_t)];
 
-// heap and buffer to load the program
-extern MemoryHeap prog_mh;
-extern Embryo_Cell prog_buff[MAX_CODE_SIZE];
-
-
-#define MAX_NATIVE_CALLS 128
-
-
-// heap and buffer to use native calls
-extern MemoryHeap nc_mh;
-extern Embryo_Native nc_buff[MAX_NATIVE_CALLS];
-
-// virtual machine manager
-extern MemoryHeap EVMM_mh;
-extern EmbrioVMManager EVMM_buff;
 extern EmbrioVMManager *vm_man;
-
 extern EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 
 #ifdef __cplusplus
@@ -132,9 +118,11 @@ extern "C" {
 	void embrioInit(void);
 
 	void embrioPoolsSetup(void);
-	void embrioHeapsSetup(void);
+	void embrioHeapSetup(void);
 
 	void embrioPoolsPrealloc(void);
+	void embrioHeapAlloc(void);
+
 
 	void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm);
 
