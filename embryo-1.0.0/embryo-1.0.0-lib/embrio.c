@@ -172,9 +172,36 @@ void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
 }
 
 Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
+
+	Thread* thdp;
+
 	vm->state = EMBRIOVM_RUN;
-	// return chThdCreateFromMemoryPool(&THD_mp, prio, vm_thread, (void*)vm);
-	// return chThdCreateFromHeap(NULL, THD_WA_SIZE(512), prio, vm_thread, (void *)vm);
+
+	// thdp = chThdCreateFromHeap( &THD_mp, THD_WA_SIZE(THD_SIZE), prio, vm_thread, (void *)vm);
+	thdp = chThdCreateFromMemoryPool( &THD_mp, prio, vm_thread, (void *)vm);
+
+	if(thdp == NULL){
+		palSetPad( GPIOC, YELLOW_LED);
+		chThdSleepMilliseconds(1500);
+		palClearPad( GPIOC, YELLOW_LED);
+		chThdSleepMilliseconds(250);
+		palSetPad( GPIOC, YELLOW_LED);
+		chThdSleepMilliseconds(1500);
+		palClearPad( GPIOC, YELLOW_LED);
+
+		chprintf((BaseChannel*)&SD3,"Thd VM 0 ep NO\r\n");
+	}else{
+		palSetPad( GPIOC, GREEN_LED);
+		chThdSleepMilliseconds(1500);
+		palClearPad( GPIOC, GREEN_LED);
+		chThdSleepMilliseconds(250);
+		palSetPad( GPIOC, GREEN_LED);
+		chThdSleepMilliseconds(1500);
+		palClearPad( GPIOC, GREEN_LED);
+
+		chprintf((BaseChannel*)&SD3,"Thd VM 0 ep OK\r\n");
+	}
+	return thdp;
 }
 
 
