@@ -109,12 +109,12 @@ int main(void) {
 	palClearPad(GPIOC, YELLOW_LED);
 
 	if(vm_man == NULL){
-		chprintf((BaseChannel*)&SD3,"VMM NO\r\n");
+		chprintf((BaseChannel*)&SD3,"\n\n\rVMM NO\r\n");
 	}else{
 		vm_man->vm_count = 0;
 		vm_man->vm_first = NULL;
 		vm_man->state = EMBRIOVMM_STOP;
-		chprintf((BaseChannel*)&SD3,"VMM OK\r\n");
+		chprintf((BaseChannel*)&SD3,"\n\n\rVMM OK\r\n");
 	}
 
 	vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);

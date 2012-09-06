@@ -91,11 +91,10 @@ extern int currVM;
 
 // array defining the Thread used for running VMs
 // size of thread (used for macro THD_WA_SIZE)
-#define THD_SIZE 2048
+#define THD_SIZE 128
 
 extern MemoryPool THD_mp;
-// extern Thread THD_pool[MAX_EMBRIO_VM_NUM];
-
+extern stkalign_t THD_pool[THD_WA_SIZE(THD_SIZE) * MAX_EMBRIO_VM_NUM / sizeof(stkalign_t)];
 
 
 #define EMBRIO_HEAP_SIZE 2048

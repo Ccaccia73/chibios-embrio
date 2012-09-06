@@ -25,7 +25,9 @@ int Estp_pool[MAX_EMBRIO_VM_NUM];
 
 int currVM = 0;
 
+// memory pool for threads
 MemoryPool THD_mp;
+stkalign_t THD_pool[THD_WA_SIZE(THD_SIZE) * MAX_EMBRIO_VM_NUM / sizeof(stkalign_t)];
 
 
 // global Memory Heap for embrio elements
@@ -83,7 +85,6 @@ void embrioInit(void) {
 
 }
 
-stkalign_t pippo;
 
 void embrioPoolsSetup(void){
 	// initialize and preload the blocks
@@ -98,9 +99,8 @@ void embrioPoolsSetup(void){
 	// Stack Top: the dimension of stack top is an int
 	chPoolInit( &Estp_mp, sizeof(int), NULL);
 
-	// thread used for VMs (we use chCoreAlloc to avoid freeing in advance)
-	/// todo: verify that chCoreAlloc is ok and we don't want to free
-	chPoolInit( &THD_mp, THD_WA_SIZE(THD_SIZE), chCoreAlloc);
+	// thread used for VMs
+	chPoolInit( &THD_mp, THD_WA_SIZE(THD_SIZE), NULL);
 
 }
 
@@ -116,6 +116,8 @@ void embrioPoolsPrealloc(void){
 	// test
 	// void *test_alloc;
 
+	/// todo: optimize!
+
 	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
 		chPoolFree(&EP_mp, (void*)(&EP_pool[i]));
 	}
@@ -126,6 +128,10 @@ void embrioPoolsPrealloc(void){
 
 	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
 		chPoolFree(&Estp_mp, (void*)(&Estp_pool[i]));
+	}
+
+	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
+		chPoolFree(&THD_mp, (void*)(&THD_pool[THD_WA_SIZE(THD_SIZE) * i / sizeof(stkalign_t)]));
 	}
 
 	/* test
@@ -167,8 +173,7 @@ void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
 
 Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 	vm->state = EMBRIOVM_RUN;
-	fixme
-	return chThdCreateFromMemoryPool(&THD_mp, prio, vm_thread, (void*)vm);
+	// return chThdCreateFromMemoryPool(&THD_mp, prio, vm_thread, (void*)vm);
 	// return chThdCreateFromHeap(NULL, THD_WA_SIZE(512), prio, vm_thread, (void *)vm);
 }
 
