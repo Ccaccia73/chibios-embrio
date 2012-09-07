@@ -160,6 +160,6 @@ int main(void) {
 			// TestThread(&SD3);
 			palTogglePad(GPIOC, GREEN_LED);
 		}
-		chThdSleepMilliseconds(100);
+		chThdSleepMilliseconds(500);
 	}
 }

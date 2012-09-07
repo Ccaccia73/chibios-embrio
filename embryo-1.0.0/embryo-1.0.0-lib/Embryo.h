@@ -4,6 +4,8 @@
 #include "ch.h"
 #include "hal.h"
 
+// #include "embryo_private.h"
+
 #ifdef _CHIBIOS_VM_
 	#define DEBUG_PRINT(_A)
 #else
@@ -39,10 +41,11 @@
 #endif // ! _WIN32
 */
 
+/*
 #ifdef  __cplusplus
 extern "C" {
 #endif
-
+*/
 #define VMAJ 1
 #define VMIN 0
 #define VMIC 0
@@ -196,8 +199,10 @@ EAPI int              embryo_program_max_cycle_run_get(Embryo_Program *ep);
 // static MemoryPool *embryo_program_MP;
 
 
+/*
 #ifdef  __cplusplus
 }
 #endif
+*/
 
 #endif

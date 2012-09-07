@@ -1,6 +1,7 @@
 #eclipse files
 .project
 .cproject
+*.launch
 .metadata/
 .settings/
 RemoteSystemsTempFiles/
