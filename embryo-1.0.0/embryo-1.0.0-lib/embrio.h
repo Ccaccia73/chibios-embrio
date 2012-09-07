@@ -80,10 +80,6 @@ extern Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
 extern MemoryPool EVM_mp;
 extern EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
 
-// array defining the stack top and memory pool
-extern MemoryPool Estp_mp;
-extern int Estp_pool[MAX_EMBRIO_VM_NUM];
-
 // variable defining the actual VM used
 extern int currVM;
 
@@ -91,13 +87,13 @@ extern int currVM;
 
 // array defining the Thread used for running VMs
 // size of thread (used for macro THD_WA_SIZE)
-#define THD_SIZE 128
+#define THD_STACK_SIZE 512
 
 extern MemoryPool THD_mp;
-extern stkalign_t THD_pool[THD_WA_SIZE(THD_SIZE) * MAX_EMBRIO_VM_NUM / sizeof(stkalign_t)];
+// extern struct THD_vm_wa;
 
 
-#define EMBRIO_HEAP_SIZE 2048
+#define EMBRIO_HEAP_SIZE 4096
 
 // global Memory Heap for embrio elements
 extern MemoryHeap embrio_mh;

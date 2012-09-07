@@ -484,7 +484,29 @@ Embryo_Program *embryo_program_load_local(unsigned char *start, unsigned char *e
 	//}
 
 	memcpy(&hdr, (void*)start, sizeof(Embryo_Header));
+/*
+	chprintf((BaseChannel*)&SD3,"E_HDR:\r\n\n");
 
+	chprintf((BaseChannel*)&SD3,"size: %u\r\n",hdr.size);
+	chprintf((BaseChannel*)&SD3,"magic: %u\r\n",hdr.magic);
+	chprintf((BaseChannel*)&SD3,"f_ver: %c\r\n",hdr.file_version);
+	chprintf((BaseChannel*)&SD3,"ep_ver: %c\r\n",hdr.ep_version);
+	chprintf((BaseChannel*)&SD3,"flgs: %d\r\n",hdr.flags);
+	chprintf((BaseChannel*)&SD3,"defsize: %d\r\n",hdr.defsize);
+	chprintf((BaseChannel*)&SD3,"cod: %d\r\n",hdr.cod);
+	chprintf((BaseChannel*)&SD3,"dat: %d\r\n",hdr.dat);
+	chprintf((BaseChannel*)&SD3,"stp: %d\r\n",hdr.stp);
+	chprintf((BaseChannel*)&SD3,"cip: %d\r\n",hdr.cip);
+	chprintf((BaseChannel*)&SD3,"pblcs: %d\r\n",hdr.publics);
+	chprintf((BaseChannel*)&SD3,"ntvs: %d\r\n",hdr.natives);
+	chprintf((BaseChannel*)&SD3,"libs: %d\r\n",hdr.libraries);
+	chprintf((BaseChannel*)&SD3,"pvars: %d\r\n",hdr.pubvars);
+	chprintf((BaseChannel*)&SD3,"tags: %d\r\n",hdr.tags);
+	chprintf((BaseChannel*)&SD3,"namet: %d\r\n",hdr.nametable);
+
+	chprintf((BaseChannel*)&SD3,"\nFILE:\r\n\n");
+	chprintf((BaseChannel*)&SD3,"size: %d\r\n",*(int*)start);
+*/
 #ifdef WORDS_BIGENDIAN
 	embryo_swap_32((unsigned int *)(&hdr.size));
 #endif
@@ -510,10 +532,12 @@ EAPI void embryo_program_free(Embryo_Program *ep) {
 	chHeapFree((void*)ep->code);
 
 	chHeapFree((void*)ep->native_calls);
+
+	chHeapFree((void*)ep->base);
+
 	currVM--;
 	chPoolFree(&EP_mp,(void*)&EP_pool[currVM]);
 
-	chPoolFree(&Estp_mp, (void*)&Estp_pool[currVM]);
 #else
 	int i;
 
@@ -684,12 +708,14 @@ EAPI void embryo_program_vm_push(Embryo_Program *ep)
 	hdr = (Embryo_Header *) ep->code;
 #ifdef _CHIBIOS_VM_
 	// ep->base = (void*)chCoreAlloc(hdr->stp);
-	ep->base = chPoolAlloc(&Estp_mp);
+	chprintf((BaseChannel*)&SD3,"stp: %d",hdr->stp);
+	ep->base = chHeapAlloc(&embrio_mh, hdr->stp);
 #else
 	ep->base = malloc(hdr->stp);
 #endif
 	if (!ep->base)
 	{
+		// chprintf((BaseChannel*)&SD3,"vero?\n\r");
 		ep->pushes = 0;
 		return;
 	}
@@ -716,7 +742,7 @@ EAPI void embryo_program_vm_pop(Embryo_Program *ep)
 		return;
 	}
 #ifdef _CHIBIOS_VM_
-	chPoolFree(&Estp_mp, (void*)ep->base);
+	chHeapFree((void*)ep->base);
 #else
 	free(ep->base);
 #endif
@@ -1444,7 +1470,9 @@ static const void *switchtable[256] =
 		&&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE, &&SWITCHTABLE_EMBRYO_OP_NONE
 	};
 #endif
-	if (!ep) return EMBRYO_PROGRAM_FAIL;
+	if (!ep){
+		return EMBRYO_PROGRAM_FAIL;
+	}
 	if (!(ep->flags & EMBRYO_FLAG_RELOC))
 	{
 		ep->error = EMBRYO_ERROR_INIT;
