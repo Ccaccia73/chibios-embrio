@@ -9,6 +9,7 @@
 #include "hal.h"
 #include "board.h"
 #include "embrio.h"
+#include "chprintf.h"
 #include "embrio_private.h"
 #include "embryo_private.h"
 
@@ -173,7 +174,7 @@ void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
 
 Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 
-	Thread* thdp;
+	Thread* thdp = NULL;
 
 	vm->state = EMBRIOVM_RUN;
 
@@ -182,21 +183,21 @@ Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 
 	if(thdp == NULL){
 		palSetPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(1500);
+		chThdSleepMilliseconds(1000);
 		palClearPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(250);
+		chThdSleepMilliseconds(500);
 		palSetPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(1500);
+		chThdSleepMilliseconds(1000);
 		palClearPad( GPIOC, YELLOW_LED);
 
 		chprintf((BaseChannel*)&SD3,"Thd VM 0 ep NO\r\n");
 	}else{
 		palSetPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(1500);
+		chThdSleepMilliseconds(1000);
 		palClearPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(250);
+		chThdSleepMilliseconds(500);
 		palSetPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(1500);
+		chThdSleepMilliseconds(1000);
 		palClearPad( GPIOC, GREEN_LED);
 
 		chprintf((BaseChannel*)&SD3,"Thd VM 0 ep OK\r\n");
