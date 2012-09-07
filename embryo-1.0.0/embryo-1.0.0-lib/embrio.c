@@ -9,9 +9,9 @@
 #include "hal.h"
 #include "board.h"
 #include "embrio.h"
-#include "chprintf.h"
 #include "embrio_private.h"
 #include "embryo_private.h"
+#include "chprintf.h"
 
 // Memory pools (defined extern in embrio.h)
 MemoryPool EP_mp;
@@ -20,16 +20,22 @@ Embryo_Program EP_pool[MAX_EMBRIO_VM_NUM];
 MemoryPool EVM_mp;
 EmbrioVM EVM_pool[MAX_EMBRIO_VM_NUM];
 
-MemoryPool Estp_mp;
-int Estp_pool[MAX_EMBRIO_VM_NUM];
-
-
 int currVM = 0;
 
 // memory pool for threads
 MemoryPool THD_mp;
-stkalign_t THD_pool[THD_WA_SIZE(THD_SIZE) * MAX_EMBRIO_VM_NUM / sizeof(stkalign_t)];
 
+/// fixme: static allocation, should depend on MAX_EMBRIO_VM_NUM
+
+struct {
+	WORKING_AREA(T0, THD_STACK_SIZE);
+	WORKING_AREA(T1, THD_STACK_SIZE);
+	// WORKING_AREA(T2, THREADS_STACK_SIZE);
+	// WORKING_AREA(T3, THREADS_STACK_SIZE);
+	// WORKING_AREA(T4, THREADS_STACK_SIZE);
+} THD_vm_wa;
+
+void * ROMCONST thd_vm_wa_p[2] = {THD_vm_wa.T0, THD_vm_wa.T1};
 
 // global Memory Heap for embrio elements
 MemoryHeap embrio_mh;
@@ -41,6 +47,8 @@ EmbrioVMManager *vm_man;
 EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 
 static msg_t vm_thread(void *p) {
+
+	chRegSetThreadName("VM");
 	// msg_t msg = RDY_OK;
 	Embryo_Status es;
 	EmbrioVM *vmp = (EmbrioVM *)p;
@@ -48,26 +56,39 @@ static msg_t vm_thread(void *p) {
 
 	embryo_program_vm_push(vmp->ep);
 
+	/* hello2 TEST OK
 	// verify that we found the functions
 	tmp = embryo_program_function_find(vmp->ep, "@test");
 
 	if(tmp != EMBRYO_FUNCTION_NONE){
-		palSetPad(GPIOC, GPIOC_LED_STATUS1);
+		chprintf((BaseChannel*)&SD3,"t OK ahi\r\n");
+	}else{
+		chprintf((BaseChannel*)&SD3,"t KO exp\r\n");
 	}
 
 	tmp = embryo_program_function_find(vmp->ep, "@event");
 
 	if(tmp != EMBRYO_FUNCTION_NONE){
-		palSetPad(GPIOC, GPIOC_LED_STATUS2);
+		chprintf((BaseChannel*)&SD3,"e OK exp\r\n");
+	}else{
+		chprintf((BaseChannel*)&SD3,"e KO ahi\r\n");
 	}
+	*/
+
 
 	es = embryo_program_run(vmp, EMBRYO_FUNCTION_MAIN);
 	//  es = embryo_program_run(vmp, embryo_program_function_find(vmp->ep, "@event"));
 
+	chprintf((BaseChannel*)&SD3,"es: %d\r\n",(int)es);
+
+	/*
 	while (TRUE) {
-
+	    palClearPad(GPIOC, GPIOC_LED_STATUS2);
+	    chThdSleepMilliseconds(500);
+	    palSetPad(GPIOC, GPIOC_LED_STATUS2);
+	    chThdSleepMilliseconds(500);
 	}
-
+	*/
 	return (msg_t)es;
 }
 
@@ -97,11 +118,8 @@ void embrioPoolsSetup(void){
 	// Embrio Virtual Machine
 	chPoolInit( &EVM_mp, sizeof(EmbrioVM), NULL);
 
-	// Stack Top: the dimension of stack top is an int
-	chPoolInit( &Estp_mp, sizeof(int), NULL);
-
 	// thread used for VMs
-	chPoolInit( &THD_mp, THD_WA_SIZE(THD_SIZE), NULL);
+	chPoolInit( &THD_mp, THD_WA_SIZE(THD_STACK_SIZE), NULL);
 
 }
 
@@ -128,11 +146,7 @@ void embrioPoolsPrealloc(void){
 	}
 
 	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
-		chPoolFree(&Estp_mp, (void*)(&Estp_pool[i]));
-	}
-
-	for (i = 0; i < MAX_EMBRIO_VM_NUM; ++i) {
-		chPoolFree(&THD_mp, (void*)(&THD_pool[THD_WA_SIZE(THD_SIZE) * i / sizeof(stkalign_t)]));
+		chPoolFree(&THD_mp, thd_vm_wa_p[i]);
 	}
 
 	/* test
@@ -181,27 +195,14 @@ Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 	// thdp = chThdCreateFromHeap( &THD_mp, THD_WA_SIZE(THD_SIZE), prio, vm_thread, (void *)vm);
 	thdp = chThdCreateFromMemoryPool( &THD_mp, prio, vm_thread, (void *)vm);
 
+	/*
 	if(thdp == NULL){
-		palSetPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(1000);
-		palClearPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(500);
-		palSetPad( GPIOC, YELLOW_LED);
-		chThdSleepMilliseconds(1000);
-		palClearPad( GPIOC, YELLOW_LED);
-
 		chprintf((BaseChannel*)&SD3,"Thd VM 0 ep NO\r\n");
 	}else{
-		palSetPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(1000);
-		palClearPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(500);
-		palSetPad( GPIOC, GREEN_LED);
-		chThdSleepMilliseconds(1000);
-		palClearPad( GPIOC, GREEN_LED);
-
 		chprintf((BaseChannel*)&SD3,"Thd VM 0 ep OK\r\n");
 	}
+	*/
+
 	return thdp;
 }
 

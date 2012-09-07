@@ -88,7 +88,7 @@ static Embryo_Cell
 _embryo_toggleXXX(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
-   palTogglePad(GPIOC, GPIOC_LED_STATUS2);
+   palTogglePad(GPIOC, YELLOW_LED);
 #else
    printf("toggle!\n");
 #endif
