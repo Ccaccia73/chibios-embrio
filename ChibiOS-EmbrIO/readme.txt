@@ -27,5 +27,7 @@ with ChibiOS/RT, you can find the whole library on the ST web site:
 
                              http://www.st.com
 
+embryo-cc -c hello2.p -S 128 
 
-arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm hello1.eaf hello1.o 
+arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm hello1.eaf hello1.o
+
