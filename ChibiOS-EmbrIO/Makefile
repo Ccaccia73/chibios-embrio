@@ -117,10 +117,13 @@ TCPPSRC =
 
 # ATTENTION! rules.mk must add $(BINOBJS) in the rule generating *.elf file
 
-BINOBJS =	test01.o \
-			blob.o \
-			hello1.o \
-			hello2.o
+#	test01.o \
+	blob.o \
+	hello1.o \
+	hello2.o
+
+BINOBJS =	vm0_eaf.o \
+			vm1_eaf.o
 
 
 # List ASM source files here

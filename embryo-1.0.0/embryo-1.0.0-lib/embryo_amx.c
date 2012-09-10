@@ -265,6 +265,7 @@ static int _embryo_program_init(Embryo_Program *ep, void *code)
 	_embryo_time_init(ep);
 #endif
 	_embryo_printXXX_init(ep);
+	_embryo_embrio01_init(ep);
 	return 1;
 }
 
@@ -708,7 +709,7 @@ EAPI void embryo_program_vm_push(Embryo_Program *ep)
 	hdr = (Embryo_Header *) ep->code;
 #ifdef _CHIBIOS_VM_
 	// ep->base = (void*)chCoreAlloc(hdr->stp);
-	chprintf((BaseChannel*)&SD3,"stp: %d",hdr->stp);
+	// chprintf((BaseChannel*)&SD3,"stp: %d",hdr->stp);
 	ep->base = chHeapAlloc(&embrio_mh, hdr->stp);
 #else
 	ep->base = malloc(hdr->stp);

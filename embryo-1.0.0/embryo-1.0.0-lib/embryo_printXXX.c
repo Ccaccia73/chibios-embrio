@@ -63,7 +63,6 @@ _embryo_printXXX_printXXX(Embryo_Program *ep, Embryo_Cell *params)
 
 	STRGET(ep, s, params[1]);
 #ifdef _CHIBIOS_VM_
-	/// TODO : add print on serial port
 	chprintf((BaseChannel*)&SD3, "%s",s);
 #else
 	printf("Stringa: %s\n", s);
@@ -112,6 +111,56 @@ static const GPTConfig gpt1cfg = {
 };
 #endif
 
+/********* embrio01_INC FUNCTIONS *****************/
+
+static _embrio01_toggleLED1(Embryo_Program *ep, Embryo_Cell *params)
+{
+#ifdef _CHIBIOS_VM_
+   palTogglePad(GPIOC, GREEN_LED);
+#else
+   printf("toggle green!\n");
+#endif
+
+   return 0;
+}
+
+static _embrio01_toggleLED2(Embryo_Program *ep, Embryo_Cell *params)
+{
+#ifdef _CHIBIOS_VM_
+   palTogglePad(GPIOC, YELLOW_LED);
+#else
+   printf("toggle yellow!\n");
+#endif
+
+   return 0;
+}
+
+
+static _embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
+{
+#ifdef _CHIBIOS_VM_
+   /// todo: implement
+#else
+   printf("read ADC1!\n");
+#endif
+
+   return 0;
+}
+
+static _embrio01_readSPI1(Embryo_Program *ep, Embryo_Cell *params)
+{
+#ifdef _CHIBIOS_VM_
+   /// todo: implement
+#else
+   printf("read SPI1!\n");
+#endif
+
+   return 0;
+}
+
+/********* Init NATIVE FUNCTIONS *****************/
+
+
 void _embryo_printXXX_init(Embryo_Program *ep)
 {
 	subscribed_ep = ep;
@@ -124,6 +173,16 @@ void _embryo_printXXX_init(Embryo_Program *ep)
 		subscribed_ep = ep;
 	}
 #endif
-
 	DEBUG_PRINT(("printXXX registered\n"));
+}
+
+
+void _embryo_embrio01_init(Embryo_Program *ep)
+{
+	embryo_program_native_call_add(ep, "toggleLED1", _embrio01_toggleLED1);
+	embryo_program_native_call_add(ep, "toggleLED2", _embrio01_toggleLED2);
+	embryo_program_native_call_add(ep, "readADC1", _embrio01_readADC1);
+	embryo_program_native_call_add(ep, "readSPI1", _embrio01_readSPI1);
+
+	DEBUG_PRINT(("embrio01 registered\n"));
 }

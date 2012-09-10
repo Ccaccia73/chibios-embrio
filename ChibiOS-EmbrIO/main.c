@@ -41,6 +41,7 @@ extern unsigned char _binary_test01_eaf_end;
 extern unsigned char _binary_test01_eaf_size;
 */
 
+/*
 extern unsigned char _binary_hello1_eaf_start;
 extern unsigned char _binary_hello1_eaf_end;
 extern unsigned char _binary_hello1_eaf_size;
@@ -48,14 +49,25 @@ extern unsigned char _binary_hello1_eaf_size;
 extern unsigned char _binary_hello2_eaf_start;
 extern unsigned char _binary_hello2_eaf_end;
 extern unsigned char _binary_hello2_eaf_size;
+*/
+
+// VM0 code
+extern unsigned char _binary_vm0_eaf_start;
+extern unsigned char _binary_vm0_eaf_end;
+extern unsigned char _binary_vm0_eaf_size;
+
+// VM1 code
+extern unsigned char _binary_vm1_eaf_start;
+extern unsigned char _binary_vm1_eaf_end;
+extern unsigned char _binary_vm1_eaf_size;
 
 
-
+/*
 // TEST
 extern unsigned char _binary_blob_bin_start;
 extern unsigned char _binary_blob_bin_end;
 extern unsigned char _binary_blob_bin_size;
-
+*/
 
 /*
  * Green LED blinker thread, times are in milliseconds.
@@ -114,7 +126,7 @@ int main(void) {
 		vm_man->vm_count = 0;
 		vm_man->vm_first = NULL;
 		vm_man->state = EMBRIOVMM_STOP;
-		chprintf((BaseChannel*)&SD3,"\n\n\rVMM OK\r\n");
+		// chprintf((BaseChannel*)&SD3,"\n\n\rVMM OK\r\n");
 	}
 
 	vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
@@ -124,24 +136,40 @@ int main(void) {
 	}else{
 		// insert VM in linked list of VMs
 		embrioVMMinsert(vm_man, vm[0]);
-		chprintf((BaseChannel*)&SD3,"VM 0 OK\r\n");
+		// chprintf((BaseChannel*)&SD3,"VM 0 OK\r\n");
+		vm[0]->ep = embryo_program_load_local(&_binary_vm0_eaf_start, &_binary_vm0_eaf_end, &_binary_vm0_eaf_size, (BaseChannel*)&SD3, TRUE);
+
+		if(vm[0]->ep == NULL){
+			chprintf((BaseChannel*)&SD3,"VM 0 ep NO\r\n");
+			vm[0]->state = EMBRIOVM_FAIL;
+		}else{
+			// chprintf((BaseChannel*)&SD3,"VM 0 ep OK\r\n");
+			vm[0]->hook = NULL;
+			vm[0]->tp = vmStart(vm[0], NORMALPRIO);
+		}
 	}
 
-	// vm[0]->ep = embryo_program_load("test01.eaf");
-	// load program
-	// vm[0]->ep = embryo_program_load_local(&_binary_blob_bin_start, &_binary_blob_bin_end, &_binary_blob_bin_size, (BaseChannel*)&SD3, TRUE);
 
-	vm[0]->ep = embryo_program_load_local(&_binary_hello2_eaf_start, &_binary_hello2_eaf_end, &_binary_hello2_eaf_size, (BaseChannel*)&SD3, TRUE);
+	vm[1] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
 
-
-	if(vm[0]->ep == NULL){
-		chprintf((BaseChannel*)&SD3,"VM 0 ep NO\r\n");
-		vm[0]->state = EMBRIOVM_FAIL;
+	if(vm[1] == NULL){
+		chprintf((BaseChannel*)&SD3,"VM 1 NO\r\n");
 	}else{
-		chprintf((BaseChannel*)&SD3,"VM 0 ep OK\r\n");
-		vm[0]->hook = NULL;
-		vm[0]->tp = vmStart(vm[0], NORMALPRIO);
+		// insert VM in linked list of VMs
+		embrioVMMinsert(vm_man, vm[1]);
+		// chprintf((BaseChannel*)&SD3,"VM 1 OK\r\n");
+		vm[1]->ep = embryo_program_load_local(&_binary_vm1_eaf_start, &_binary_vm1_eaf_end, &_binary_vm1_eaf_size, (BaseChannel*)&SD3, TRUE);
+
+		if(vm[1]->ep == NULL){
+			chprintf((BaseChannel*)&SD3,"VM 1 ep NO\r\n");
+			vm[1]->state = EMBRIOVM_FAIL;
+		}else{
+			// chprintf((BaseChannel*)&SD3,"VM 1 ep OK\r\n");
+			vm[1]->hook = NULL;
+			vm[1]->tp = vmStart(vm[1], NORMALPRIO);
+		}
 	}
+
 
 
 	/*

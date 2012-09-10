@@ -8,7 +8,7 @@ RemoteSystemsTempFiles/
 backup/
 
 #compiled
-*.o !test01.o !hello1.o !hello2.o
+*.o !test01.o !hello1.o !hello2.o !*_eaf.o
 *.so
 *.a
 .dep/
@@ -22,7 +22,6 @@ obj/
 embryo_cc
 embryo_cc.exe
 *.asm01
-*.p
 *.eaf
 
 #embryo library

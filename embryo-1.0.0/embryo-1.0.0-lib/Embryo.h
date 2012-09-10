@@ -1,12 +1,12 @@
 #ifndef _EMBRYO_H
 #define _EMBRYO_H
 
-#include "ch.h"
-#include "hal.h"
 
 // #include "embryo_private.h"
 
 #ifdef _CHIBIOS_VM_
+	#include "ch.h"
+	#include "hal.h"
 	#define DEBUG_PRINT(_A)
 #else
 	#define DEBUG_PRINT(_A) printf _A
