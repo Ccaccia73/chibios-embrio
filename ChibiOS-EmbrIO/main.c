@@ -122,9 +122,8 @@ int main(void) {
 	if(vm[0] == NULL){
 		chprintf((BaseChannel*)&SD3,"VM 0 NO\r\n");
 	}else{
-		vm_man->vm_count = 0;
-		vm_man->vm_first = NULL;
-		vm_man->state = EMBRIOVMM_STOP;
+		// insert VM in linked list of VMs
+		embrioVMMinsert(vm_man, vm[0]);
 		chprintf((BaseChannel*)&SD3,"VM 0 OK\r\n");
 	}
 
@@ -141,8 +140,6 @@ int main(void) {
 	}else{
 		chprintf((BaseChannel*)&SD3,"VM 0 ep OK\r\n");
 		vm[0]->hook = NULL;
-		// insert VM in linked list of VMs
-		embrioVMMinsert(vm_man, vm[0]);
 		vm[0]->tp = vmStart(vm[0], NORMALPRIO);
 	}
 
