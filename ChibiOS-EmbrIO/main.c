@@ -72,6 +72,7 @@ extern unsigned char _binary_blob_bin_size;
 /*
  * Green LED blinker thread, times are in milliseconds.
  */
+/*
 static WORKING_AREA(waThread1, 128);
 static msg_t Thread1(void *arg) {
 
@@ -85,6 +86,135 @@ static msg_t Thread1(void *arg) {
   }
   return (msg_t)1;
 }
+*/
+
+/*===========================================================================*/
+/* GPT                                                                       */
+/*===========================================================================*/
+
+/*
+ * GPT1
+ */
+
+static void gpt1cb(GPTDriver *gptp) {
+	(void)gptp;
+
+	EmbrioVM *vm_tmp;
+	Embryo_Function ef;
+
+	vm_tmp = vm_man->vm_first;
+
+	while(vm_tmp != NULL){
+
+		ef = embryo_program_function_find(vm_tmp->ep, "@eventGPT1");
+
+		if(ef != EMBRYO_FUNCTION_NONE){
+			// chprintf((BaseChannel*)&SD3,"%d.",i);
+			chMsgSend(vm_tmp->tp,(msg_t)ef);
+		}else{
+			// chprintf((BaseChannel*)&SD3,"%dk",i);
+		}
+		vm_tmp = vm_tmp->vm_next;
+		// i++;
+	}
+}
+
+static const GPTConfig gpt1cfg = {
+  1000,     /* 1kHz timer clock.*/
+  gpt1cb    /* Timer callback.*/
+};
+
+/*
+ * GPT2
+ */
+
+static void gpt2cb(GPTDriver *gptp) {
+	(void)gptp;
+
+	EmbrioVM *vm_tmp;
+	Embryo_Function ef;
+
+	vm_tmp = vm_man->vm_first;
+
+	while(vm_tmp != NULL){
+
+
+		ef = embryo_program_function_find(vm_tmp->ep, "@eventGPT2");
+
+		if(ef != EMBRYO_FUNCTION_NONE){
+			chMsgSend(vm_tmp->tp,(msg_t)ef);
+			// chprintf((BaseChannel*)&SD3,":");
+		}else{
+			// chprintf((BaseChannel*)&SD3,"y");
+		}
+
+		vm_tmp = vm_tmp->vm_next;
+	}
+}
+
+static const GPTConfig gpt2cfg = {
+  1000,     /* 1kHz timer clock.*/
+  gpt2cb    /* Timer callback.*/
+};
+
+/*
+ * GPT3
+ */
+
+static void gpt3cb(GPTDriver *gptp) {
+	(void)gptp;
+
+	EmbrioVM *vm_tmp;
+	Embryo_Function ef;
+
+	vm_tmp = vm_man->vm_first;
+
+	while(vm_tmp != NULL){
+
+
+		ef = embryo_program_function_find(vm_tmp->ep, "@eventGPT3");
+
+		if(ef != EMBRYO_FUNCTION_NONE){
+			chMsgSend(vm_tmp->tp,(msg_t)ef);
+			// chprintf((BaseChannel*)&SD3,";");
+		}else{
+			// chprintf((BaseChannel*)&SD3,"z");
+		}
+
+		vm_tmp = vm_tmp->vm_next;
+	}
+}
+
+static const GPTConfig gpt3cfg = {
+  1000,     /* 1kHz timer clock.*/
+  gpt3cb    /* Timer callback.*/
+};
+
+
+/*===========================================================================*/
+/* EXTI                                                                      */
+/*===========================================================================*/
+
+static void exti0cb(EXTDriver *extp, expchannel_t channel) {
+
+	(void)extp;
+	(void)channel;
+}
+
+static void exti1cb(EXTDriver  *extp, expchannel_t channel) {
+
+	(void)extp;
+	(void)channel;
+}
+
+static const EXTConfig exticfg = {
+  .channels = {
+    {EXT_CH_MODE_RISING_EDGE, exti0cb}, /* EXTI line 0 */
+    {EXT_CH_MODE_RISING_EDGE, exti1cb},	/* EXTI line 1 */
+  }
+};
+
+
 
 /*
  * Application entry point.
@@ -145,10 +275,9 @@ int main(void) {
 		}else{
 			// chprintf((BaseChannel*)&SD3,"VM 0 ep OK\r\n");
 			vm[0]->hook = NULL;
-			vm[0]->tp = vmStart(vm[0], NORMALPRIO);
+			vm[0]->tp = vmStart(vm[0], NORMALPRIO, "VM0");
 		}
 	}
-
 
 	vm[1] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
 
@@ -166,11 +295,9 @@ int main(void) {
 		}else{
 			// chprintf((BaseChannel*)&SD3,"VM 1 ep OK\r\n");
 			vm[1]->hook = NULL;
-			vm[1]->tp = vmStart(vm[1], NORMALPRIO);
+			vm[1]->tp = vmStart(vm[1], NORMALPRIO, "VM1");
 		}
 	}
-
-
 
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
@@ -179,6 +306,15 @@ int main(void) {
 
 	// sdWrite(&SD3,"pippo\n",strlen("pippo\n"));
 
+	chRegSetThreadName("VM Manager");
+
+	gptStart(&GPTD1, &gpt1cfg);
+	gptStart(&GPTD2, &gpt2cfg);
+	gptStart(&GPTD3, &gpt3cfg);
+
+	gptStartContinuous(&GPTD1, 20001);
+	gptStartContinuous(&GPTD2, 12001);
+	gptStartContinuous(&GPTD3, 23001);
 
 	while (TRUE) {
 		if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0){

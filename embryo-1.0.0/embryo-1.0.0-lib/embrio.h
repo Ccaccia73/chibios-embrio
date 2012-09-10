@@ -31,7 +31,7 @@ struct _EmbrioVM {
 	Thread			*tp;
 	Embryo_Program	*ep;
 	Embrio_hook		hook;
-	int			hook_params;
+	int				hook_params;
 	void			*vm_next;
 /*
 	Embryo_Cell		pri;
@@ -105,7 +105,7 @@ extern EmbrioVMManager *vm_man;
 extern EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 
 #ifdef __cplusplus
-extern "C" {
+// extern "C" {
 #endif
 
 	Embryo_Status embryo_program_run(EmbrioVM *vmp, Embryo_Function fn);
@@ -121,13 +121,13 @@ extern "C" {
 
 	void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm);
 
-	Thread *vmStart(EmbrioVM *vm, tprio_t prio);
+	Thread *vmStart(EmbrioVM *vm, tprio_t prio, const char *name);
 	void embrio_vm_sleep(EmbrioVM *vmp);
 	void embrio_vm_resume(EmbrioVM *vmp);
 	void embrio_native_call(EmbrioVM *vmp);
 	void embrio_call(EmbrioVM *vmp);
 #ifdef __cplusplus
-}
+// }
 #endif
 
 #endif /* _VM_H_ */

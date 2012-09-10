@@ -117,6 +117,7 @@ static _embrio01_toggleLED1(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
    palTogglePad(GPIOC, GREEN_LED);
+   // chprintf((BaseChannel*)&SD3,"g");
 #else
    printf("toggle green!\n");
 #endif
@@ -128,6 +129,7 @@ static _embrio01_toggleLED2(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
    palTogglePad(GPIOC, YELLOW_LED);
+   // chprintf((BaseChannel*)&SD3,"y");
 #else
    printf("toggle yellow!\n");
 #endif
@@ -140,6 +142,7 @@ static _embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
    /// todo: implement
+	chprintf((BaseChannel*)&SD3,"adc\r\n");
 #else
    printf("read ADC1!\n");
 #endif
@@ -151,6 +154,7 @@ static _embrio01_readSPI1(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
    /// todo: implement
+	chprintf((BaseChannel*)&SD3,"spi\r\n");
 #else
    printf("read SPI1!\n");
 #endif

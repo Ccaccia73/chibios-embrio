@@ -48,9 +48,10 @@ EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 
 static msg_t vm_thread(void *p) {
 
-	chRegSetThreadName("VM");
 	// msg_t msg = RDY_OK;
 	Embryo_Status es;
+	Embryo_Function ef;
+	Thread *tp;
 	EmbrioVM *vmp = (EmbrioVM *)p;
 	int tmp;
 
@@ -79,7 +80,16 @@ static msg_t vm_thread(void *p) {
 	es = embryo_program_run(vmp, EMBRYO_FUNCTION_MAIN);
 	//  es = embryo_program_run(vmp, embryo_program_function_find(vmp->ep, "@event"));
 
-	chprintf((BaseChannel*)&SD3,"es: %d\r\n",(int)es);
+	// chprintf((BaseChannel*)&SD3,"es: %d\r\n",(int)es);
+
+	while(TRUE){
+		tp = chMsgWait();
+		ef = (Embryo_Function)chMsgGet(tp);
+		chMsgRelease(tp, RDY_OK);
+		// chprintf((BaseChannel*)&SD3,"x");
+		es = embryo_program_run(vmp, ef);
+		// chprintf((BaseChannel*)&SD3,"%d\r\n",es);
+	}
 
 	/*
 	while (TRUE) {
@@ -186,7 +196,7 @@ void embrioVMMinsert(EmbrioVMManager *vm_man, EmbrioVM *new_vm){
 	vm_man->vm_count++;
 }
 
-Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
+Thread *vmStart(EmbrioVM *vm, tprio_t prio, const char *name) {
 
 	Thread* thdp = NULL;
 
@@ -194,6 +204,8 @@ Thread *vmStart(EmbrioVM *vm, tprio_t prio) {
 
 	// thdp = chThdCreateFromHeap( &THD_mp, THD_WA_SIZE(THD_SIZE), prio, vm_thread, (void *)vm);
 	thdp = chThdCreateFromMemoryPool( &THD_mp, prio, vm_thread, (void *)vm);
+
+	thdp->p_name = name;
 
 	/*
 	if(thdp == NULL){

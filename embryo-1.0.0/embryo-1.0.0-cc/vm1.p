@@ -6,7 +6,7 @@ new state = 0
 @eventGPT1()
 {
 	if(state == 1){
-		toggleLED1()
+		toggleLED2()
 	}
 }
 
