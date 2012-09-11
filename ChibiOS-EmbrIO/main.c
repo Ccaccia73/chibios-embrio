@@ -195,25 +195,102 @@ static const GPTConfig gpt3cfg = {
 /* EXTI                                                                      */
 /*===========================================================================*/
 
-static void exti0cb(EXTDriver *extp, expchannel_t channel) {
+static void ext0cb(EXTDriver *extp, expchannel_t channel) {
 
 	(void)extp;
 	(void)channel;
+
+	// chprintf((BaseChannel*)&SD3,":");
+	EmbrioVM *vm_tmp;
+	Embryo_Function ef;
+
+	vm_tmp = vm_man->vm_first;
+
+	while(vm_tmp != NULL){
+
+
+		ef = embryo_program_function_find(vm_tmp->ep, "@eventEXTI2");
+
+		if(ef != EMBRYO_FUNCTION_NONE){
+			chMsgSend(vm_tmp->tp,(msg_t)ef);
+			// chprintf((BaseChannel*)&SD3,";");
+		}else{
+			// chprintf((BaseChannel*)&SD3,"z");
+		}
+
+		vm_tmp = vm_tmp->vm_next;
+	}
 }
 
-static void exti1cb(EXTDriver  *extp, expchannel_t channel) {
+static void ext1cb(EXTDriver  *extp, expchannel_t channel) {
 
 	(void)extp;
 	(void)channel;
+
+	// chprintf((BaseChannel*)&SD3,".");
+
+	// chprintf((BaseChannel*)&SD3,":");
+	EmbrioVM *vm_tmp;
+	Embryo_Function ef;
+
+	vm_tmp = vm_man->vm_first;
+
+	while(vm_tmp != NULL){
+
+
+		ef = embryo_program_function_find(vm_tmp->ep, "@eventEXTI1");
+
+		if(ef != EMBRYO_FUNCTION_NONE){
+			chMsgSend(vm_tmp->tp,(msg_t)ef);
+			// chprintf((BaseChannel*)&SD3,";");
+		}else{
+			// chprintf((BaseChannel*)&SD3,"z");
+		}
+
+		vm_tmp = vm_tmp->vm_next;
+	}
 }
 
-static const EXTConfig exticfg = {
-  .channels = {
-    {EXT_CH_MODE_RISING_EDGE, exti0cb}, /* EXTI line 0 */
-    {EXT_CH_MODE_RISING_EDGE, exti1cb},	/* EXTI line 1 */
-  }
+static const EXTConfig ext1cfg = {
+	{
+		{EXT_CH_MODE_RISING_EDGE, ext0cb},	/* EXT line  0 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  1 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  2 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  3 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  4 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  5 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  6 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  7 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  8 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  9 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 10 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 11 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 12 */
+		{EXT_CH_MODE_RISING_EDGE, ext1cb},	/* EXT line 13 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 14 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 15 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 16 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 17 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 18 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 19 */
+	},
+	EXT_MODE_EXTI(EXT_MODE_GPIOA,			/*  0 */
+		0,									/*  1 */
+		0,									/*  2 */
+		0,									/*  3 */
+		0,									/*  4 */
+		0,									/*  5 */
+		0,									/*  6 */
+		0,									/*  7 */
+		0,									/*  8 */
+		0,									/*  9 */
+		0,									/* 10 */
+		0,									/* 11 */
+		0,									/* 12 */
+		EXT_MODE_GPIOC,						/* 13  */
+		0,									/* 14 */
+		0)									/* 15 */
 };
-
 
 
 /*
@@ -315,6 +392,13 @@ int main(void) {
 	gptStartContinuous(&GPTD1, 20001);
 	gptStartContinuous(&GPTD2, 12001);
 	gptStartContinuous(&GPTD3, 23001);
+
+	extStart(&EXTD1, &ext1cfg);
+	// extStart(&EXTDA, &ext2cfg);
+
+	 extChannelEnable(&EXTD1, 0);
+	 extChannelEnable(&EXTD1, 13);
+
 
 	while (TRUE) {
 		if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0){
