@@ -292,6 +292,192 @@ static const EXTConfig ext1cfg = {
 		0)									/* 15 */
 };
 
+/*********************************************************************************
+ *
+ * SPI & ADC
+ *
+ *********************************************************************************/
+
+static void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n);
+
+// static void spicb(SPIDriver *spip);
+
+/* Total number of channels to be sampled by a single ADC operation.*/
+#define ADC_GRP1_NUM_CHANNELS   2
+
+/* Depth of the conversion buffer, channels are sampled four times each.*/
+#define ADC_GRP1_BUF_DEPTH      4
+
+/*
+ * ADC samples buffer.
+ */
+static adcsample_t samples[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
+
+/*
+ * ADC conversion group.
+ * Mode:        Linear buffer, 4 samples of 2 channels, SW triggered.
+ * Channels:    IN11   (48 cycles sample time)
+ *              Sensor (192 cycles sample time)
+ */
+static const ADCConversionGroup adcgrpcfg = {
+		FALSE,
+		ADC_GRP1_NUM_CHANNELS,
+		adccb,
+		NULL,
+		/* HW dependent part.*/
+		0,
+		ADC_CR2_SWSTART,
+		ADC_SMPR1_SMP_AN11(ADC_SAMPLE_55P5) | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_55P5),
+		0,
+		ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
+		0,
+		ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11) | ADC_SQR3_SQ1_N(ADC_CHANNEL_SENSOR)
+};
+
+/*
+ * ADC end conversion callback.
+ * The PWM channels are reprogrammed using the latest ADC samples.
+ * The latest samples are transmitted into a single SPI transaction.
+ */
+void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
+
+	(void) buffer; (void) n;
+	/* Note, only in the ADC_COMPLETE state because the ADC driver fires an
+     intermediate callback when the buffer is half full.*/
+	if (adcp->state == ADC_COMPLETE) {
+		adcsample_t avg_ch1, avg_ch2;
+
+		/* Calculates the average values from the ADC samples.*/
+		avg_ch1 = (samples[0] + samples[2] + samples[4] + samples[6]) / 4;
+		avg_ch2 = (samples[1] + samples[3] + samples[5] + samples[7]) / 4;
+
+		chprintf((BaseChannel*)&SD3,"%d %d\r\n",avg_ch1,avg_ch2);
+
+/*		chSysLockFromIsr();
+
+
+		// SPI slave selection and transmission start.
+		spiSelectI(&SPID2);
+		spiStartSendI(&SPID2, ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH, samples);
+
+		chSysUnlockFromIsr();*/
+	}
+}
+
+
+#ifdef _TEST_
+
+
+
+/*
+ * SPI1 configuration structure.
+ * Speed 5.25MHz, CPHA=1, CPOL=1, 8bits frames, MSb transmitted first.
+ * The slave select line is the pin GPIOE_CS_SPI on the port GPIOE.
+ */
+static const SPIConfig spi1cfg = {
+		NULL,
+		/* HW dependent part.*/
+		GPIOE,
+		GPIOE_CS_SPI,
+		SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_CPOL | SPI_CR1_CPHA
+};
+
+/*
+ * SPI2 configuration structure.
+ * Speed 21MHz, CPHA=0, CPOL=0, 16bits frames, MSb transmitted first.
+ * The slave select line is the pin 12 on the port GPIOA.
+ */
+static const SPIConfig spi2cfg = {
+		spicb,
+		/* HW dependent part.*/
+		GPIOB,
+		12,
+		SPI_CR1_DFF
+};
+
+
+
+/*
+ * SPI end transfer callback.
+ */
+static void spicb(SPIDriver *spip) {
+
+	/* On transfer end just releases the slave select line.*/
+	chSysLockFromIsr();
+	spiUnselectI(spip);
+	chSysUnlockFromIsr();
+}
+
+
+
+/*
+ * Application entry point.
+ */
+int main(void) {
+
+	/*
+	 * Activates the serial driver 2 using the driver default configuration.
+	 * PA2(TX) and PA3(RX) are routed to USART2.
+	 */
+	sdStart(&SD2, NULL);
+	palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));
+	palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7));
+
+
+	/*
+	 * Initializes the SPI driver 2. The SPI2 signals are routed as follow:
+	 * PB12 - NSS.
+	 * PB13 - SCK.
+	 * PB14 - MISO.
+	 * PB15 - MOSI.
+	 */
+	spiStart(&SPID2, &spi2cfg);
+	palSetPad(GPIOB, 12);
+	palSetPadMode(GPIOB, 12, PAL_MODE_OUTPUT_PUSHPULL |
+			PAL_STM32_OSPEED_HIGHEST);           /* NSS.     */
+	palSetPadMode(GPIOB, 13, PAL_MODE_ALTERNATE(5) |
+			PAL_STM32_OSPEED_HIGHEST);           /* SCK.     */
+	palSetPadMode(GPIOB, 14, PAL_MODE_ALTERNATE(5));              /* MISO.    */
+	palSetPadMode(GPIOB, 15, PAL_MODE_ALTERNATE(5) |
+			PAL_STM32_OSPEED_HIGHEST);           /* MOSI.    */
+
+	/*
+	 * Initializes the ADC driver 1 and enable the thermal sensor.
+	 * The pin PC0 on the port GPIOC is programmed as analog input.
+	 */
+	adcStart(&ADCD1, NULL);
+	adcSTM32EnableTSVREFE();
+	palSetPadMode(GPIOC, 1, PAL_MODE_INPUT_ANALOG);
+
+
+	/*
+	 * Initializes the SPI driver 1 in order to access the MEMS. The signals
+	 * are initialized in the board file.
+	 * Several LIS302DL registers are then initialized.
+	 */
+	spiStart(&SPID1, &spi1cfg);
+	lis302dlWriteRegister(&SPID1, LIS302DL_CTRL_REG1, 0x43);
+	lis302dlWriteRegister(&SPID1, LIS302DL_CTRL_REG2, 0x00);
+	lis302dlWriteRegister(&SPID1, LIS302DL_CTRL_REG3, 0x00);
+
+	/*
+	 * Normal main() thread activity, in this demo it does nothing except
+	 * sleeping in a loop and check the button state, when the button is
+	 * pressed the test procedure is launched with output on the serial
+	 * driver 2.
+	 */
+	while (TRUE) {
+		int8_t x, y, z;
+
+		x = (int8_t)lis302dlReadRegister(&SPID1, LIS302DL_OUTX);
+		y = (int8_t)lis302dlReadRegister(&SPID1, LIS302DL_OUTY);
+		z = (int8_t)lis302dlReadRegister(&SPID1, LIS302DL_OUTZ);
+		chprintf((BaseChannel *)&SD2, "%d, %d, %d\r\n", x, y, z);
+		chThdSleepMilliseconds(500);
+	}
+}
+
+#endif
 
 /*
  * Application entry point.
@@ -394,13 +580,18 @@ int main(void) {
 	gptStartContinuous(&GPTD3, 23001);
 
 	extStart(&EXTD1, &ext1cfg);
-	// extStart(&EXTDA, &ext2cfg);
 
 	 extChannelEnable(&EXTD1, 0);
 	 extChannelEnable(&EXTD1, 13);
 
+	 /*
+	  * Initializes the ADC driver 1 and enable the thermal sensor.
+	  * The pin PC0 on the port GPIOC is programmed as analog input.
+	  */
+	 adcStart(&ADCD1, NULL);
+	 palSetPadMode(GPIOC, 1, PAL_MODE_INPUT_ANALOG);
 
-	while (TRUE) {
+	 while (TRUE) {
 		if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0){
 			// TestThread(&SD3);
 			palTogglePad(GPIOC, GREEN_LED);
