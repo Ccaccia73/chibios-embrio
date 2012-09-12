@@ -589,6 +589,9 @@ int main(void) {
 	  * The pin PC0 on the port GPIOC is programmed as analog input.
 	  */
 	 adcStart(&ADCD1, NULL);
+
+	 adcStartConversion(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH);
+
 	 palSetPadMode(GPIOC, 1, PAL_MODE_INPUT_ANALOG);
 
 	 while (TRUE) {
