@@ -28,9 +28,21 @@ embryo_cc.exe
 armdir/
 simdir/
 
-#embryo similator
+#embryo simulator
 embryo_sim
 embryo_sim.exe
 
 #other
 .* !.gitignore
+
+#LaTeX
+*~
+*.aux
+*.aux.bak
+*.bbl
+*.blg
+#*.dvi
+*.log
+#*.ps
+#*.pdf
+*.swp

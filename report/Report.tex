@@ -1,0 +1,202 @@
+% VDE Template for EUSAR Papers
+% Provided by Barbara Lang und Siegmar Lampe
+% University of Bremen, January 2002
+% English version by Jens Fischer
+% German Aerospace Center (DLR), December 2005
+% Additional modifications by Matthias Wei{\ss}
+% FGAN, January 2009
+
+%-----------------------------------------------------------------------------
+% Type of publication
+\documentclass[a4paper,10pt]{article}
+%-----------------------------------------------------------------------------
+% Other packets: Most packets may be downloaded from www.dante.de and
+% "tcilatex.tex" can be found at (December 2005):
+% http://www.mackichan.com/techtalk/v30/UsingFloat.htm
+% Not all packets are necessarily needed:
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+%\usepackage{ngerman} % in german language if required
+\usepackage[nooneline,bf]{caption} % Figure descriptions from left margin
+\usepackage{times}
+\usepackage{multicol}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[dvips]{graphicx}
+\usepackage{epsfig}
+\input{tcilatex}
+%-----------------------------------------------------------------------------
+% Page Setup
+\textheight24cm \textwidth17cm \columnsep6mm
+\oddsidemargin-5mm                 % depending on print drivers!
+\evensidemargin-5mm                % required margin size: 2cm
+\headheight0cm \headsep0cm \topmargin0cm \parindent0cm
+\pagestyle{empty}                  % delete footer and header
+%----------------------------------------------------------------------------
+% Environment definitions
+\newenvironment*{mytitle}{\begin{LARGE}\bf}{\end{LARGE}\\}%
+\newenvironment*{mysubtitle}{\bf}{\\[1.5ex]}%
+\newenvironment*{myabstract}{\begin{Large}\bf}{\end{Large}\\[2.5ex]}%
+%-----------------------------------------------------------------------------
+% Using Pictures and tables:
+% - Instead "table" write "tablehere" without parameters
+% - Instead "figure" write "figurehere " without parameters
+% - Please insert a blank line before and after \begin{figuerhere} ... \end{figurehere}
+%
+% CAUTION:   The first reference to a figure/table in the text should be formatted fat.
+%
+\makeatletter
+\newenvironment{tablehere}{\def\@captype{table}}{}
+\newenvironment{figurehere}{\def\@captype{figure}\vspace{2ex}}{\vspace{2ex}}
+\makeatother
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+% Please use capital letters in the beginning of important words as for example
+\begin{mytitle}ChibiOS-EmbrIO\end{mytitle}
+\begin{mysubtitle}Embryo Virtual Machines running on Chibi RTOS\end{mysubtitle}
+%
+% Please do not insert a line here
+%
+\\
+Caccia Claudio\\
+Matr. 751302, (claudiogiovanni.caccia@mail.polimi.it)\\
+\hspace{10ex}
+% Last-name First-name\\
+% Matr. 123456, (address@email.com)\\
+\begin{flushright}
+\emph{Report for the master course of Embedded Systems}\\
+\emph{Reviser: ing. Martino Migliavacca (martino.migliavacca@gmail.com)}
+\end{flushright}
+
+Received: September, 16 2012\\
+\hspace{10ex}
+
+\begin{myabstract} Abstract \end{myabstract}
+
+The report describes the implementation of Embryo virtual machines on a Cortex-M3 ARM processor. Embryo is a library designed to interpret a subset of programs coded in a C-like syntax language known as \textit{Small}. The library is tiny enough to be used on embedded systems with a reduced amount of memory. The idea behind this work is to make it possible to load, execute, unload and substitute different programs on an embedded system in a way that can be roughly compared to the one that we normally use in normal computers or in complex embedded systems like smartphones. This can make a small system highly flexible, by changing its behavour at runtime, without the need to load the entire code and reboot.\\
+In order to achieve this goal, the Embryo library has been modified, in order to be used on an embedded system, and has then been integrated with a very performing RTOS like ChibiOS. Some programs have then been compiled, loaded and executed on a demoboard.
+
+
+\vspace{4ex}	% Please do not remove or reduce this space here.
+\begin{multicols}{2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+
+When we think about Embedded Systems we can divide them into two main categories: on one side we have complex systems, like latest generation smartphones, where we can have a huge amount of memory, multicore processors, multiple interfaces and where we can download and use a lot of different applications and then cancel them without the need of switching the system off. On the other side we have small systems, like microcontrollers, which perform just one or few tasks for their entire life. We can just change some parameters only if we have implemented some callbacks on the system in order to update the values at runtime by using some communication interface ( eg. Serial, Fieldbus... ). We cannot change the overall behaviour of the system. For example, if we have implemented a PID controller, we can modify its parameters, but if we need to change the type of controller we need to code a new one, compile and then load it on the processor (eg. by means of a flash programmer or by using a bootloader ).\\
+
+In some environments it can be particularly interesting and time saving to change the behavoiur of the system at runtime, eg. in robotics, in particular in cooperative robotics, it could be possible to change the way a single component acts without the need to keep all the possible configurations on board, or in artificial vision, it could be possible to change classifiers or algorithms and test them in a simple way.\\
+
+So we investigated the possibility to implement a system based on virtual machines, so that one could load, execute and unload different components by selecting one or more program and launch it on a VM.\\
+
+We needed a virtual machine small enough to be executed on an embedded system and the choice fell on \textit{Embryo}. At the same time we needed all the features that a RTOS can provide (eg. task scheduling, IPC, memory management, HAL...) and we selected \textit{ChibiOS}. Finally we needed an environment to implement and test the first basic features that we coded: for this purpose we selected a demoboard based on \textit{ARM Cortex\textsuperscript{tm}-M3} processor.
+
+In the following sections we describe in further detail these components.
+
+
+%-----------------------------------------------------------------------------
+\subsection{Embryo}
+% Please avoid separations in titles
+% and separate text manually
+
+
+
+
+This is a citation \cite{Norman09Learn} and here is another citation
+\cite{Peyton93Howto}.  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Sed velit. Ut id orci ut quam placerat rhoncus. Pellentesque sed nisl. Aliquam
+sagittis nunc ut dui.  Nullam elementum felis eget mauris! Curabitur nunc arcu,
+venenatis ac, commodo id, tristique molestie, urna? Donec in tortor vel augue
+rhoncus elementum. Nunc ac felis. Nam nulla quam, cursus sed, egestas nec,
+rutrum et, purus. Nullam sapien mi, ullamcorper rutrum, placerat eget,
+consectetur ut, metus. Integer porta, lacus non fermentum pretium, enim dui
+auctor ligula, ut faucibus lacus sem a metus. Maecenas posuere dui eu est. Ut
+massa urna, auctor quis, tempus et, sollicitudin quis, justo?
+
+
+And this is the reference to a single column figure (see {\bf Figure
+\ref{fig:myfigure1}}).  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Vivamus dapibus convallis odio. Nunc sollicitudin laoreet ante! Vivamus dictum
+euismod orci.
+
+\begin{figurehere}
+ \centering
+ \includegraphics[width=8cm, height=4cm]{./eps/placeholder.eps}
+ \caption{Some single-column figure caption.}
+ \label{fig:myfigure1}
+\end{figurehere}
+
+
+%-----------------------------------------------------------------------------
+\subsection{The second subsection of the first \\ Section}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et ligula. Nullam
+in libero. Donec dictum pede in justo. Lorem ipsum dolor sit amet, consectetur
+adipiscing elit. Aliquam congue. Aliquam egestas. Nunc eu est ac nibh mattis
+vestibulum. Curabitur aliquet bibendum odio. Etiam hendrerit. Nunc a velit quis
+dui molestie consequat. Sed et turpis et mi feugiat tincidunt. Sed sollicitudin.
+Ut risus? Duis eget orci eu turpis consectetur fringilla? Lorem ipsum dolor sit
+amet, consectetur adipiscing elit. Nullam tellus ligula, placerat vitae, tempor
+vitae, varius id; est! Nullam et ipsum eget tellus eleifend sollicitudin? Fusce
+urna massa, imperdiet vitae, convallis in; lacinia sed, tortor.
+
+\begin{figure*}[t]
+  \centering
+ \includegraphics[width=16cm, height=4cm]{./eps/placeholder.eps}
+ \caption{Some wide-figure caption.}
+ \label{fig:myfigure2}
+\end{figure*}
+
+And this is the reference to a single column figure (see {\bf Figure
+\ref{fig:myfigure2}}). Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Nullam consectetur neque at orci. Curabitur non metus. Praesent congue porta
+nisl. Suspendisse ultricies, sem ac ultrices aliquam, erat nisi fermentum est; a
+rhoncus mauris arcu eget nibh. Aliquam sollicitudin velit non erat. Lorem ipsum
+dolor sit amet, consectetur adipiscing elit. Integer nulla diam, facilisis vel,
+accumsan sed; molestie egestas, massa. Fusce malesuada, ipsum et pulvinar
+aliquet, est dolor laoreet enim, quis porttitor erat mauris eget sapien. Integer
+vitae urna. Duis lectus.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The Second Section}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.  Aenean magna. Nunc non
+ante eget nibh condimentum tempor. Nullam ullamcorper lectus eget mauris. Nam
+neque orci; rhoncus at, pulvinar quis, elementum sit amet, turpis. Mauris
+posuere nisi ut justo. Morbi non lorem vitae mauris interdum faucibus.
+Vestibulum ut sapien in augue faucibus fringilla. Vestibulum ante ipsum primis
+in faucibus orci luctus et ultrices posuere cubilia Curae; Etiam vestibulum
+fringilla libero. Curabitur libero diam, hendrerit sit amet, ornare eget,
+imperdiet vel, purus!
+
+
+%-----------------------------------------------------------------------------
+\subsection{The first subsection of the second \\ Section}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam consectetur ante at
+eros. Vestibulum mi nisi, venenatis sollicitudin, tempus sed, auctor id, tortor.
+Fusce orci. Duis tellus arcu, euismod sed, consequat sit amet, elementum vel,
+mauris. Curabitur leo diam; dapibus quis, condimentum vitae, dignissim ut, diam.
+Nulla et nulla eget elit volutpat sagittis.
+
+%-----------------------------------------------------------------------------
+\subsection{The second subsection of the second \\ Section}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris eget mauris.
+Nulla facilisi. Ut condimentum tempor eros? Integer metus mauris, consectetur
+sit amet, tempor a, facilisis eu, nisl. Vestibulum at turpis. Ut vitae tortor
+pretium nisl vestibulum blandit. Nulla nibh urna, semper et, elementum at,
+mattis ut, nisi! Cum sociis natoque penatibus et magnis dis parturient montes,
+nascetur ridiculus mus. Morbi vel ligula eget lacus convallis venenatis. Aliquam
+lacinia tincidunt felis. Ut dui.
+
+% We suggest the use of JabRef for editing your bibliography file (Report.bib)
+\bibliographystyle{splncs}
+\bibliography{Report}
+
+\end{multicols}
+\end{document}
