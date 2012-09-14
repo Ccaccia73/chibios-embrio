@@ -160,7 +160,7 @@
 @MISC{stm32f107,
   title = {STM32 F 107 processor},
   howpublished = {\url{http://www.st.com/internet/mcu/product/221020.jsp}},
-  author = {{STMicroelectronics}},
+  author = {{ST-Microelectronics}},
   owner = {ccaccia},
   timestamp = {2012.09.13}
 }

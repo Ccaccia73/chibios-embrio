@@ -1,0 +1,115 @@
+# Fdb version 3
+["bibtex C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report"] 1347528348 "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.aux" "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.bbl" "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report" 1347528379
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.aux" 1347528348 1139 d66d0adf3d8b5a7d0962892aad8d7b7c ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.bcf" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/splncs.bst" 1305810318 21614 9ee4cac30a518501de968fc9f07fe066 ""
+  "Report.bib" 1347524048 1961 753b698e86c4840ac2ed01860013a424 ""
+  (generated)
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.blg"
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.bbl"
+["pdflatex"] 1347528348 "Report.tex" "Report.pdf" "Report" 1347528379
+  "C:/Documents and Settings/ccaccia/Dati applicazioni/MiKTeX/2.9/tex/latex/caption/caption.sty" 1331805126 64617 3e595e89cb20089970940faf5347edb4 ""
+  "C:/Documents and Settings/ccaccia/Dati applicazioni/MiKTeX/2.9/tex/latex/caption/caption.sty" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Dati applicazioni/MiKTeX/2.9/tex/latex/caption/caption3.sty" 1331805126 59928 5bdbc848cc19ace34fb8f06975f2d198 ""
+  "C:/Documents and Settings/ccaccia/Dati applicazioni/MiKTeX/2.9/tex/latex/caption/caption3.sty" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.aux" 1347528348 1139 d66d0adf3d8b5a7d0962892aad8d7b7c ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.aux" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.bbl" 1347528348 346 6e34b7b5899e4aaa043658b16207beeb "bibtex C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report"
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.bbl" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.tex" 1347527925 11698 aa87cfefc78384bf239260088b03ab9a ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.tex" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/eps/efl.eps" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/eps/placeholder.eps" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/tcilatex.tex" 1305810318 34825 ab4168e7d8e476706574a63d5da83052 ""
+  "C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/tcilatex.tex" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Impostazioni locali/Dati applicazioni/MiKTeX/2.9/miktex/data/le/pdftex/pdflatex.fmt" 0 -1 0 ""
+  "C:/Documents and Settings/ccaccia/Impostazioni locali/Dati applicazioni/MiKTeX/2.9/pdftex/config/pdftex.map" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/courier/pcrr8r.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/courier/pcrr8t.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8r.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8t.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmr8r.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmr8t.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmri8r.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmri8t.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/jknappen/ec/ecrm1000.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msam5.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msam7.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msbm10.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msbm5.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msbm7.tfm" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/courier/pcrr8t.vf" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmb8t.vf" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmr8t.vf" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmri8t.vf" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/00miktex/graphics.cfg" 1169166149 1599 cc574e5c201b0aea0b14dad7e51fd367 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/00miktex/graphics.cfg" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsbsy.sty" 943830000 3535 ce75ca6de8380293f2081dec8ab08a93 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsbsy.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsgen.sty" 943916400 5453 08b555fa01ef74ce33d74813d74c2362 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsgen.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsmath.sty" 963878400 79756 c9b39210cd9d3168825ff6f880d43821 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsmath.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsopn.sty" 945126000 5082 c925b14d21ef5c56597fe90e8e1686ad ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsopn.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amstext.sty" 962236800 3745 bcdc4858c6f7cfeb8e957b4284216414 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amstext.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/amsfonts.sty" 1335435710 5548 21cc890100eeac7a6a792024ef2889eb ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/amsfonts.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/amssymb.sty" 1335435710 13613 9d8ad59dafa33583045d4f2c7f2a4863 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/amssymb.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/umsa.fd" 1335435710 955 d0043fae981c93e583f3f271f791633c ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/umsa.fd" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/umsb.fd" 1335435710 955 ee57f5eb74e91b35bb314e3044c12d81 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/umsb.fd" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/article.cls" 1309393538 20571 b8bd218bf2e18b4f5817ee643cd9c515 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/article.cls" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/fontenc.sty" 1309393538 4435 b97063eb2f20be499e7725926af85c55 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/fontenc.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/inputenc.sty" 1309393536 4388 1cb2ca8d423695bd22ea8d126c276f33 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/inputenc.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/latin1.def" 1309393536 6455 2a72ff1732e71317e8b646afb44d691b ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/latin1.def" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/size10.clo" 1309393538 9042 248dfba326a1b8733d6bb8e0a3ac1e49 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/size10.clo" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/t1enc.def" 1309393538 9172 67c33288b50eb57eab968f345e8befb0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/base/t1enc.def" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/dvips.def" 1253897124 4987 e75a6e083c3e5580593a6e65268b14e5 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/dvips.def" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/epsfig.sty" 1253897124 3106 a896e5fe135d4485f72ce6c9d8459d2e ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/epsfig.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/graphics.sty" 1253897124 14183 42a8fc761b806986eef292369afc2988 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/graphics.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/graphicx.sty" 1253897124 7882 3bd78469d444e8d494e27cfd7ca92719 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/graphicx.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/keyval.sty" 1253897124 2266 7054435e4584a41cf53b0a7ca624d0cb ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/keyval.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/trig.sty" 1253897124 3153 c50e6bd54d2dd3933fc52bcf369bec4a ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/graphics/trig.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ltxmisc/url.sty" 1197261360 21932 e3a9cf32ee9b853b42be14c2f25b873c ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/ltxmisc/url.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/t1pcr.fd" 1137110630 798 d5895e9edc628f2be019beb2c0ec66df ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/t1pcr.fd" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/t1ptm.fd" 1137110630 774 61d7da1e9f9e74989b196d147e623736 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/t1ptm.fd" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/times.sty" 1156706054 857 6c716f26c5eadfb81029fcd6ce2d45e6 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/times.sty" 0 -1 0 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/tools/multicol.sty" 1317722312 27674 e2a10073cf9b41d5a8649501f0e1c932 ""
+  "C:/Programmi/MiKTeX 2.9/tex/latex/tools/multicol.sty" 0 -1 0 ""
+  "Report.aux" 1347528348 1139 d66d0adf3d8b5a7d0962892aad8d7b7c ""
+  "Report.tex" 1347527925 11698 aa87cfefc78384bf239260088b03ab9a ""
+  "eps/efl.eps" 1347527888 675716 fa25b52719f13d2a067c010f7b88b521 ""
+  "eps/placeholder.eps" 1305810318 3348 0982698789c215d4db43a7d03a509211 ""
+  (generated)
+  "Report.aux"
+  "Report.pdf"
+  "Report.log"
+  "Report.log"
+  "Report.pdf"

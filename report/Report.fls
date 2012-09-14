@@ -1,0 +1,117 @@
+PWD C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report
+INPUT C:/Documents and Settings/ccaccia/Impostazioni locali/Dati applicazioni/MiKTeX/2.9/miktex/data/le/pdftex/pdflatex.fmt
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.tex
+OUTPUT Report.log
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/article.cls
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/article.cls
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/size10.clo
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/size10.clo
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/fontenc.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/fontenc.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/t1enc.def
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/t1enc.def
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/jknappen/ec/ecrm1000.tfm
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/inputenc.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/inputenc.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/latin1.def
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/base/latin1.def
+INPUT C:/Documents and Settings/ccaccia/Dati applicazioni/MiKTeX/2.9/tex/latex/caption/caption.sty
+INPUT C:/Documents and Settings/ccaccia/Dati applicazioni/MiKTeX/2.9/tex/latex/caption/caption.sty
+INPUT C:/Documents and Settings/ccaccia/Dati applicazioni/MiKTeX/2.9/tex/latex/caption/caption3.sty
+INPUT C:/Documents and Settings/ccaccia/Dati applicazioni/MiKTeX/2.9/tex/latex/caption/caption3.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/keyval.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/keyval.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/times.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/times.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/tools/multicol.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/tools/multicol.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsmath.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsmath.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amstext.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amstext.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsgen.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsgen.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsbsy.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsbsy.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsopn.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ams/math/amsopn.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/amssymb.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/amssymb.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/amsfonts.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/amsfonts.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/graphicx.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/graphicx.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/graphics.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/graphics.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/trig.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/trig.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/00miktex/graphics.cfg
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/00miktex/graphics.cfg
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/dvips.def
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/dvips.def
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/epsfig.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/graphics/epsfig.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ltxmisc/url.sty
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/ltxmisc/url.sty
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/tcilatex.tex
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/tcilatex.tex
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.aux
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.aux
+OUTPUT Report.aux
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/t1ptm.fd
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/t1ptm.fd
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmr8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmr8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmri8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmr8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/umsa.fd
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/umsa.fd
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msam10.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msam7.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msam5.tfm
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/umsb.fd
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/amsfonts/umsb.fd
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msbm7.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/public/amsfonts/symbols/msbm5.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmri8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmr8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8t.tfm
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/eps/efl.eps
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/eps/efl.eps
+OUTPUT Report.pdf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmb8t.vf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8r.tfm
+INPUT C:/Documents and Settings/ccaccia/Impostazioni locali/Dati applicazioni/MiKTeX/2.9/pdftex/config/pdftex.map
+INPUT C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmb8t.vf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8r.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmr8t.vf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmr8r.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmri8t.vf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmri8r.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmb8t.vf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8r.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmri8t.vf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmri8r.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/times/ptmb8t.vf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/times/ptmb8r.tfm
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/eps/placeholder.eps
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/eps/placeholder.eps
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.bbl
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.bbl
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/t1pcr.fd
+INPUT C:/Programmi/MiKTeX 2.9/tex/latex/psnfss/t1pcr.fd
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/courier/pcrr8t.tfm
+INPUT C:/Programmi/MiKTeX 2.9/fonts/vf/adobe/courier/pcrr8t.vf
+INPUT C:/Programmi/MiKTeX 2.9/fonts/tfm/adobe/courier/pcrr8r.tfm
+INPUT C:/Documents and Settings/ccaccia/Desktop/EmbrIO/report/Report.aux
+INPUT C:/Programmi/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc
+INPUT C:/Programmi/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb
+INPUT C:/Programmi/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb
+INPUT C:/Programmi/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb
+INPUT C:/Programmi/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb
