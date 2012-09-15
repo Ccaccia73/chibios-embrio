@@ -459,7 +459,7 @@ After initializing ChibiOS/RT, two threads are spawned by default \cite{chThd}:
 \item \textbf{Main thread}. This thread executes the \texttt{main()} function at startup. It is from the main thread that the other threads running the VM are created.
 \end{itemize}
 
-In ChibiOS-EmbrIO the main thread initializes all the needed timers(GPT: General Purpose Timer), used either by different drivers (e.g. SPI) or to call cyclic routines and configures all the external interrupts (EXT: generic EXTernal driver) and subsequent callbacks (e.g. what to do when a button is pressed ), and then spawns a thread for each Embryo Virtual Machine.
+In ChibiOS-EmbrIO the main thread initializes all the needed timers (GPT: General Purpose Timer), used either by different drivers (e.g. SPI) or to call cyclic routines and configures all the external interrupts (EXT: generic EXTernal driver) and subsequent callbacks (e.g. what to do when a button is pressed ), and then spawns a thread for each Embryo Virtual Machine.
 \bigskip
 \begin{lstlisting}[caption={EmbrIO VM start}]
 /* allocate Memory Pool element for first VM */
@@ -607,7 +607,8 @@ We decided to use the following drivers and callbacks:
 
 \subsection{Dispatch of Callbacks}
 In this first implementation of Embryo Virtual Machines on ChibiOS/RT, we decided not to implement \textit{argument passing} to Embryo functions, leaving the implementations of \textit{hook} and \textit{hook\_params} to further development.\newline
-Each callback simply needs to call an event function without arguments, and does it by looking for the function in each machine. The following code illustrates the operation:
+Each callback simply needs to call an event function without arguments, and does it by looking for the function in each machine. If the function is part of the code (i.e. it can be run on the VM), the Embryo function \texttt{embryo\_function\_find} does the work for us: it returns a specific value (\texttt{EMBRYO\_FUNCTION\_NONE}) if there is no corresponding function or a specific value that can be used to identify and execute the function itself.\newline
+The following code illustrates the operation described here:
 \medskip
 \lstset{language=C}
 \begin{lstlisting}[caption={Callback looking for a function in VMs}]
@@ -637,8 +638,9 @@ void gpt1cb(GPTDriver *gptp) {
 }
 \end{lstlisting}
 \medskip
-A timer event triggers the callback function (in this example \texttt{gpt1cb}), which looks for a specific function (in this example \texttt{@eventGPT1}) and, if it is found, sends a message to the corresponding thread. Note that different VMs can implement the same function in different ways.\newline
-When a Virtual Machine thread is spawned, it loads the code, then runs the main function and finally enters an infinite loop waiting for messages. Note that a callback sends a different message to every thread, and the message contains the value of the function to be executed, coded as a \texttt{Embryo\_Function} parameter. When the message arrives, the thread wakes up and executes the function. The following code illustrates the operations:
+In the example above, a timer event triggers the callback function (named \texttt{gpt1cb}), which looks for a specific function (here \texttt{@eventGPT1}) and, if it is found, sends a message to the corresponding thread. Note that different VMs can implement the same function in different ways.\newline
+The \textit{EmbrIO\_VM} \texttt{struct} carries all the necessary information.\newline
+When a Virtual Machine thread is spawned, it loads the code, then executes the main function and finally enters an infinite loop waiting for messages. Note that a callback sends a different message to each thread that is involved, and the message carries the value of the function to be executed, coded as a \texttt{Embryo\_Function} parameter. When the message arrives, the thread wakes up and executes the corresponding function. The following code illustrates the operations described above:
 \medskip
 \lstset{language=C}
 \begin{lstlisting}[caption={Callback looking for a function in VMs}]
@@ -665,6 +667,8 @@ When a Virtual Machine thread is spawned, it loads the code, then runs the main 
 	}
 }
 \end{lstlisting}\medskip
+
+The code above is the same for all the threads that are spawned: a Virtual Machines that is created: 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
