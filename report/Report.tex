@@ -26,6 +26,7 @@
 \usepackage{graphicx}
 \usepackage{epsfig}
 %\usepackage{natbib}
+\usepackage{textgreek}
 \usepackage{url}
 \usepackage{listings}
 \usepackage[usenames]{color} %Per permettere la colorazione dei caratteri 
@@ -120,7 +121,7 @@ Received: September, 16 2012\\
 \begin{myabstract} Abstract \end{myabstract}
 
 The report describes the implementation of Embryo virtual machines on a Cortex-M3 ARM processor. Embryo is a library designed to interpret a subset of programs coded in a C-like syntax language known as \textit{Small}. The library is tiny enough to be used on embedded systems with a reduced amount of memory. The idea behind this work is to make it possible to load, execute, unload and substitute different programs on an embedded system in a way that can be roughly compared to the one that we normally use in normal computers or in complex embedded systems like smartphones. This can make a small system highly flexible, by changing its behavior at runtime, without the need to load the entire code and reboot.\\
-In order to achieve this goal, the Embryo library has been modified, in order to be used on an embedded system, and has then been integrated with a very performing RTOS like ChibiOS/RT. Some programs have then been compiled, loaded and executed on a demo-board.
+In order to achieve this goal, the Embryo library has been modified to be used on an embedded system, and it has then been integrated with a very performing RTOS like ChibiOS/RT. Some programs have then been compiled, loaded and executed on a demo-board.
 
 
 \vspace{4ex}	% Please do not remove or reduce this space here.
@@ -492,15 +493,9 @@ After initialization, every Virtual Machine is running, and the execution depend
 
 As the overall behavior strongly depends on the elements above, for that reason some tests have been conducted to implement few first simple functionalities in order to analyze the system performances. In the following section we describe the setup and the tests that we carried on.
 
-%\begin{figure*}[t]
-%  \centering
-% \includegraphics[width=16cm, height=4cm]{./eps/efl}
-% \caption{Some wide-figure caption.}
-% \label{fig:myfigure20}
-%\end{figure*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Tests}
+\section{Application Code}
 
 \subsection{Embryo Code}
 
@@ -562,8 +557,8 @@ The code has then been compiled with the following command string:
 embryo-cc -c vm0.p -S 128
 \end{lstlisting}
 \medskip
-The execution outputs a \texttt{vm0.eaf} file (Embryo Assembly File). Note that, to reduce stack size and overall program size, it is very important to use the \texttt{-S} option using the least feasible stack/heap size, otherwise \texttt{Embryo\_Program} requires too many Kbytes of memory.
-Further development in ChibiOS-EmbrIO will assume that assembly code will be loaded in memory by using some communication interface (e.g. Serial RS232, CAN, etc...). At present no particular interface is fully functional and so we decided to load the assembly code together with the rest, linking it at compile time. We first used the following command:
+The execution outputs a \texttt{vm0.eaf} file (Embryo Assembly File). It is important to note that, in order to reduce stack size and overall program size, it is mandatory to use the \texttt{-S} option using the least feasible stack/heap size, otherwise \texttt{Embryo\_Program} requires too many Kbytes of memory.
+Further development in ChibiOS-EmbrIO will allow assembly code to be loaded into memory by using some communication interface (e.g. Serial RS232, CAN, etc...). At present state, no particular interface is fully functional and so we decided to load the assembly code together with the rest, linking it at compile time. We first used the following command:
 \medskip
 \lstset{language=bash}
 \begin{lstlisting}[caption={object code command}]
@@ -596,7 +591,7 @@ vm[0]->ep = embryo_program_load_local(
 Upon successful load, the program can be executed by an Embryo Virtual Machine.
 
 \subsection{Drivers and Callbacks}
-We decided to use the following drivers and callbacks:
+We decided to implement the following drivers and callbacks:
 
 \begin{itemize}
 \item \textit{TIM1}: timer 1 gives the \textit{heartbeat} of the Virtual Machine, if it is in UP state makes the led  blink. Each Virtual Machine makes a different led blink. The function name is the same (\textit{@eventGPT1}) for every VM, but the code is different.
@@ -606,8 +601,8 @@ We decided to use the following drivers and callbacks:
 \end{itemize}
 
 \subsection{Dispatch of Callbacks}
-In this first implementation of Embryo Virtual Machines on ChibiOS/RT, we decided not to implement \textit{argument passing} to Embryo functions, leaving the implementations of \textit{hook} and \textit{hook\_params} to further development.\newline
-Each callback simply needs to call an event function without arguments, and does it by looking for the function in each machine. If the function is part of the code (i.e. it can be run on the VM), the Embryo function \texttt{embryo\_function\_find} does the work for us: it returns a specific value (\texttt{EMBRYO\_FUNCTION\_NONE}) if there is no corresponding function or a specific value that can be used to identify and execute the function itself.\newline
+In this first implementation of Embryo Virtual Machines on ChibiOS/RT, we decided not to implement \textit{argument passing} to and from Embryo functions, leaving the implementations of \textit{hook} and \textit{hook\_params} to further development.\newline
+Each callback simply needs to call an event function in a program without arguments, and accomplishes this task by looking for the function in each machine. If the function is part of the code (i.e. it can be run on the VM), the Embryo function \texttt{embryo\_function\_find} does the work for us: it returns a specific value (\texttt{EMBRYO\_FUNCTION\_NONE}) if there is no corresponding function or a number that can be used to identify and execute the function itself.\newline
 The following code illustrates the operation described here:
 \medskip
 \lstset{language=C}
@@ -638,8 +633,9 @@ void gpt1cb(GPTDriver *gptp) {
 }
 \end{lstlisting}
 \medskip
-In the example above, a timer event triggers the callback function (named \texttt{gpt1cb}), which looks for a specific function (here \texttt{@eventGPT1}) and, if it is found, sends a message to the corresponding thread. Note that different VMs can implement the same function in different ways.\newline
-The \textit{EmbrIO\_VM} \texttt{struct} carries all the necessary information.\newline
+In the example above, a timer event triggers the callback function (named \texttt{gpt1cb}), which looks for a specific function (here \texttt{@eventGPT1}) and, if it is found, sends a message to the corresponding thread. Note that different VMs can implement the same function in different ways, allowing some flexibility: in our case, with the same callback, one VM makes the green led blink and the other vM makes yellow led blink.\newline
+The \textit{EmbrIO\_VM} \texttt{struct} carries all the necessary information (i.e. pointer to the program, pointer to the thread, ...) to perform the operation.\newline
+\medskip
 When a Virtual Machine thread is spawned, it loads the code, then executes the main function and finally enters an infinite loop waiting for messages. Note that a callback sends a different message to each thread that is involved, and the message carries the value of the function to be executed, coded as a \texttt{Embryo\_Function} parameter. When the message arrives, the thread wakes up and executes the corresponding function. The following code illustrates the operations described above:
 \medskip
 \lstset{language=C}
@@ -668,12 +664,62 @@ When a Virtual Machine thread is spawned, it loads the code, then executes the m
 }
 \end{lstlisting}\medskip
 
-The code above is the same for all the threads that are spawned: a Virtual Machines that is created: 
+The code above is the same for all the threads that are spawned. The only difference consists in the Embryo code that is loaded when the Virtual Machine is created.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Tests}
+
+We tested the application in two different phases. At first we analyzed the behavior of the system itself (see setup in Figure \ref{fig:myfigure5}):
+
+\begin{itemize}
+\item 2 Virtual Machines
+\item 3 GPT callbacks
+\item 2 EXT interrupt callbacks connected to buttons
+\item mock native functions for ADC and SPI callbacks (substituted with serial port log)
+\end{itemize}
+
+Within this environment we verified that the system worked as expected: with the two buttons enabling and disabling the VMs.\newline
+We tried changing the timers frequency and verified that the system continued working.
+In a subsequent phase we started configuring the \textit{SPI} and \textit{ADC} HAL of ChibiOS/RT, to be able to read two different temperature sensors:
+
+\begin{itemize}
+\item a 5k$ \Omega $ NTC thermistor \cite{wikiTh} with a simple conditioning circuit \cite{embTh}.
+\item a DS18B20 SPI temperature sensor with a connection scheme similar to the one used for an Arduino platform and described in \cite{spiArd}.
+\end{itemize}
+
+We used port C pins 10 to 12 to connect SPI sensor.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
 
-Further development
+The main target of the project was to make Embryo and ChibiOS/RT work together, allowing Embryo programs run on Abstract Machines in a ChibiOS/RT environment. We saw that this kind of setup is feasible and promising in a lot of applications.\newline
+Further development is still needed to complete some features and to extend the functionalities of ChibiOS-EmbrIO. In particular we cite:
+
+\begin{itemize}
+\item Load Embryo programs at runtime, using some communication interface (e.g. CAN).
+\item Implement more native functions in order to use as many ChibiOS/RT services as possible, making ChibiOS/RT and Embryo more deeply connected. As a result, much more degrees of freedom will be available when writing Embryo programs.
+\item Allow the use of \textit{argument passing} when calling Embryo function or use return values.
+\item Complete the code of the Virtual Machine Manager, for example making it the central component that manages all the Virtual Machines, for example by using the \textit{queue} ChibiOS/RT service from external interrupts to the manager and messages from the manager to the VMs.
+\item extend some Embryo functionalities (e.g. \textit{string} usage or \textit{Float} operations) if interesting for some applications.
+\end{itemize}
+
+Further analysis of the performances is also needed. In particular we cite:
+
+\begin{itemize}
+\item Analyze the optimal size of Embryo Programs, limiting stack/heap size without worsening Virtual Machine performances.
+\item Measure execution time, in order to determine how fast we can execute VMs and so update data (this can be really interesting if applied to controllers). On the other hand, it can be interesting to determine if the message passing environment reaches a critical level for performances.
+\item Evaluate if it is possible to optimize memory usage: for example when loading an Embryo program.
+\end{itemize}
+
+As a final remark we can state that ChibiOS-EmbrIO can have very interesting further development.
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=16cm, height=12cm]{./eps/DSCF2211}
+	\caption{Application and Hardware setup.}
+	\label{fig:myfigure5}
+\end{figure*}
 
 % We suggest the use of JabRef for editing your bibliography file (Report.bib)
 \bibliographystyle{splncs}
