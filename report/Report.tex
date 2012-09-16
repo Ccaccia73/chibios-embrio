@@ -120,8 +120,8 @@ Received: September, 16 2012\\
 
 \begin{myabstract} Abstract \end{myabstract}
 
-The report describes the implementation of Embryo virtual machines on a Cortex-M3 ARM processor. Embryo is a library designed to interpret a subset of programs coded in a C-like syntax language known as \textit{Small}. The library is tiny enough to be used on embedded systems with a reduced amount of memory. The idea behind this work is to make it possible to load, execute, unload and substitute different programs on an embedded system in a way that can be roughly compared to the one that we normally use in normal computers or in complex embedded systems like smartphones. This can make a small system highly flexible, by changing its behavior at runtime, without the need to load the entire code and reboot.\\
-In order to achieve this goal, the Embryo library has been modified to be used on an embedded system, and it has then been integrated with a very performing RTOS like ChibiOS/RT. Some programs have then been compiled, loaded and executed on a demo-board.
+The report describes the implementation of Embryo virtual machines on a Cortex\texttrademark-M3 ARM processor. Embryo is a library designed to interpret a subset of programs coded in a C-like syntax language known as \textit{Small}. The library is tiny enough to be used on embedded systems with a reduced amount of memory. The idea behind this work is to make it possible to load, execute, unload and exchange different programs on an embedded system in a way that can be roughly compared to the one that we normally use on personal computers, laptops or in complex embedded systems like smartphones. A feature like this can make a small system highly flexible, allowing the possibility to change its behavior at runtime, without the need to load the entire code and reboot.\\
+In order to achieve this goal, the Embryo library has been modified to be used on the embedded system that we used for our tests, and it has then been integrated with a very performing RTOS like ChibiOS/RT. Some programs have then been compiled, loaded and executed on a demo-board.
 
 
 \vspace{4ex}	% Please do not remove or reduce this space here.
@@ -130,11 +130,11 @@ In order to achieve this goal, the Embryo library has been modified to be used o
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
-When we think about Embedded Systems we can divide them into two main categories: on one side we have complex systems, like latest generation smartphones, where we can have a huge amount of memory, multi-core processors, multiple interfaces and where we can download and use a lot of different applications and then cancel them without the need of switching the system off. On the other side we have small systems, like micro-controllers, which perform just one or few tasks for their entire life. We can just change some parameters only if we have implemented some callbacks on the system in order to update the values at runtime by using some communication interface ( e.g. Serial, Fieldbus... ). We cannot change the overall behavior of the system. For example, if we have implemented a PID controller, we can modify its parameters, but if we need to change the type of controller we need to code a new one, compile and then load it on the processor (e.g. by means of a flash programmer or by using a bootloader ).\newline
+When we think about Embedded Systems we can divide them into two main categories: on one side we have complex systems, like latest generation smartphones, where we can have a huge amount of memory, multi-core processors, multiple interfaces and where we can download and use a lot of different applications and then cancel them without the need of switching the system off. On the other side we have small systems, like micro-controllers, which perform just one or few tasks for their entire life. We can just change some parameters only if we have implemented some callbacks on the system in order to update the values at runtime by using some communication interface ( e.g. Serial, Fieldbus... ). We cannot change the overall behavior of the system. For example, if we have implemented a PID controller, we can modify its gains, but if we need to change the type of controller we need to code a new one, compile and then load it on the processor (e.g. by means of a flash programmer or by using a bootloader ).\newline
 
-In some environments it can be particularly interesting and time saving to change the behavior of the system at runtime, e.g. in robotics, in particular in cooperative robotics, it could be possible to change the way a single component acts without the need to keep all the possible configurations on board, or in artificial vision, it could be possible to change classifiers or algorithms and test them in a simple way.\newline
+In some environments it can be particularly interesting and time saving to change the behavior of the system at runtime, e.g. in robotics, in particular in cooperative robotics, it could be possible to change the way a single component acts without the need to keep all the possible configurations on board, or in artificial vision, it could be possible to change classifiers or algorithms, test and use them in a simple way.\newline
 
-So we investigated the possibility to implement a system based on virtual machines, so that one could load, execute and unload different components by selecting one or more program and launch it on a VM.\newline
+So we investigated the possibility to implement a system based on virtual machines, so that one could load, execute and unload different components by selecting one or more program and launch it on a Virtual Machine managed by an underlying Operative System.\newline
 
 We needed a virtual machine small enough to be executed on an embedded system and the choice fell on \textit{Embryo}. At the same time we needed all the features that a RTOS can provide (e.g. task scheduling, IPC, memory management, HAL...) and we selected \textit{ChibiOS/RT}. Finally we needed an environment to implement and test the first basic features that we coded: for this purpose we selected a demo-board based on \textit{ARM Cortex\texttrademark-M3} processor.
 
@@ -157,13 +157,13 @@ Embryo \cite{embryoSite} is a tiny library designed to interpret limited \textit
  \label{fig:myfigure1}
 \end{figurehere}
 
-The \textit{Small} language, renamed Pawn \cite{pawnLang}, is an open source scripting language intended to be embeddable. It is a simple, typeless, 32-bit extension language with a C-like syntax. A source program is compiled to a binary file for optimal execution speed. The compiler outputs a \textit{P-code} (or bytecode) that subsequently runs on an abstract machine.\\
-Embryo implements a subset of \textit{Pawn/Small} features as described in \cite{embyoLang}. In its most recent version (1.7.0), Embryo depends on another EFL library, named Eina \cite{einaLib}. Eina is a library that implements APIs for data types and provides some tools like opening shared libraries, errors management, type conversion and memory management. Although some of these features can be useful, we preferred to rely on an older version of Embryo (1.1.0) which is not depending on any other library, neither for the compiler, nor for the abstract machine.
+The \textit{Small} language, renamed Pawn \cite{pawnLang}, is an open source scripting language intended to be embeddable. It is a simple, typeless, 32-bit extension language with a C-like syntax. A source program is compiled to a binary file for optimal execution speed. The compiler outputs a \textit{P-code} (or bytecode) that subsequently runs on an abstract machine.\newline
+Embryo implements a subset of the \textit{Pawn/Small} features as described in \cite{embyoLang}. In its most recent version (1.7.0), Embryo depends on another EFL library, named Eina \cite{einaLib}. Eina is a library that implements APIs for data types and provides some tools like opening shared libraries, errors management, type conversion and memory management. Although some of these features can be useful, we preferred to rely on an older version of Embryo (1.1.0) which is not depending on any other library, neither for the compiler, nor for the abstract machine.
 
 %-----------------------------------------------------------------------------
 \subsection{ChibiOS/RT}
 
-ChibiOS/RT is a RTOS designed for embedded applications on 8, 16 and 32 bits microcontrollers focused on size and execution efficiency \cite{wikiChibi}. The kernel size can range from a minimum of 1.2Kbytes up to a maximum of 5.5Kbytes  on a STM32 Cortex-M3 processor. The kernel is able to perform a Context Switch in 1.2 microseconds on a 72 MHz STM32.\\
+ChibiOS/RT is a RTOS designed for embedded applications on 8, 16 and 32 bits micro-controllers, focused on size and execution efficiency \cite{wikiChibi}. The kernel size can range from a minimum of 1.2Kbytes up to a maximum of 5.5Kbytes  on a STM32 Cortex\texttrademark-M3 processor. The kernel is able to perform a Context Switch in 1.2 microseconds on a 72 MHz STM32.\\
 ChibiOS/RT has also a lot features \cite{chibiHP} that simplify application development on embedded systems:
 
 \begin{itemize}
@@ -204,7 +204,7 @@ Among other features, we mainly used the following components:
 %-----------------------------------------------------------------------------
 \subsection{Development and testing equipment}
 
-The code has been written using the \textit{Eclipse CDT} IDE \cite{cdt}, and has been compiled using the CodeSourcery ARM EABI compiler, maintained by Mentor Graphics \cite{sourcery}.\\
+The code has been written using the \textit{Eclipse CDT} IDE \cite{cdt}, and has been compiled using the CodeSourcery ARM EABI compiler, maintained by Mentor Graphics \cite{sourcery}.\newline
 In order to run and debug the program, we used the JTAG interface produced by Olimex (see {\bf Figure \ref{fig:myfigure3}}), which allows debug operations via ARM JTAG interface and communication via an RS232 Serial interface.
 
 \begin{figurehere}
@@ -240,23 +240,23 @@ The project structure is the following:
 	.1 ChibiOS/RT.
 }
 \bigskip
-The project is managed by using a Git revision control system and is hosted on \url{http://code.google.com/p/chibios-embrio/}. ChibiOS/RT is mainly untouched and is out of revision control. The compiler and the abstract machine derive from Enlightenment code, while the simulator is a really small tool developed in order to test the basic functionalities of the abstract machine. The original Embryo project is managed by the \textit{GNU Automake} tool. In order to use different compilation parameters (the abstract machine can be compiled for ARM but also for a host pc), a new \texttt{Makefile} has been generated.
+The project is managed by using a Git revision control system and it is hosted on \url{http://code.google.com/p/chibios-embrio/}. ChibiOS/RT is mainly untouched and is out of revision control. The compiler and the abstract machine derive from the Enlightenment code, while the simulator is a really small tool developed in order to test the basic functionalities of the abstract machine. The original Embryo project is managed by the \textit{GNU Automake} tool. In order to use different compilation parameters (the abstract machine can be compiled for ARM but also for a host pc), a new set of \texttt{Makefile}s has been generated.
 
 %-----------------------------------------------------------------------------
 \subsection{Embryo Compiler}
 
-The compiler underwent the least modifications. None of the components that build the bytecode has been touched. The original code is very Linux-oriented, looking for default paths like \texttt{/usr/bin} or looking into the \texttt{/proc} filesystem. As some of the development has been carried on in a Windows environment, the whole setup of the paths has been simplified.\\
-The Embryo Abstract Machine allows the user to define his own \textit{native functions}, which extend the basic functionalities of a program and allow to reduce the code size. The Embryo compiler just needs to know the signature of the native functions; the user can include any \texttt{*.inc} files with the function signatures. The user needs only to indicate the directories where the compiler must search for the files. The source code is very similar to C:
-
+The compiler underwent the least modifications. None of the components that build the bytecode has been touched. The original code is very Linux-oriented, looking for default paths like \texttt{/usr/bin} or into the \texttt{/proc} filesystem. As some of the development has been carried on in a Windows environment, the whole setup of the paths has been simplified.
+The Embryo Abstract Machine allows the user to define his own \textit{native functions}, which extend the basic functionalities of a program and allow to reduce the code size. The Embryo compiler just needs to know the signature of the native functions; the user can include any \texttt{*.inc} files with the functions signatures. The user needs only to indicate the directories where the compiler must search for the files. The source code is very similar to C:
+\medskip
 \begin{lstlisting}[caption={include directives in Embryo}]
 /* files with native functions to include */
 #include <printXXX>
 #include <embrio01>
 
 \end{lstlisting}
-We encountered some difficulties when looking for \texttt{*.inc} files and so we slightly modified the way Embryo compiler looks into the directories where the files are.\\
+We encountered some difficulties when looking for \texttt{*.inc} files and so we slightly modified the way Embryo compiler looks into the directories where the files are.\newline
 Finally we changed the command line arguments used to call \texttt{embryo\_cc}, using the conventions of \texttt{getoptlong.h}.
-\bigskip
+\medskip
 \lstset{language=bash}
 \begin{lstlisting}[caption={Command line arguments}]
 Usage:   embryo_cc -c  <filename> [options]
@@ -273,7 +273,7 @@ Options:
 %-----------------------------------------------------------------------------
 \subsection{Embryo Abstract Machine}
 
-The Embryo Abstract Machine needed modifications in two areas: the definition of native functions and the memory management. Embryo gives the chance to define one's own functions and so we used it to call ChibiOS/RT functions within the Embryo environment. As we wanted to test the Abstract Machine also on a pc, we used the \texttt{\#define} directive to select the compilation environment.
+The Embryo Abstract Machine needed modifications in two areas: definition of \textit{native functions} and \textit{memory management}. Embryo gives the possibility to define one's own functions and so we used it to call ChibiOS/RT services within the Embryo environment. As we wanted to test the Abstract Machine also on a pc, we used the \texttt{\#define} directive to select the compilation environment.
 
 \subsubsection{Native Functions}
 \lstset{language=C}
@@ -292,7 +292,7 @@ _embryo_sleep(Embryo_Program *ep, Embryo_Cell *params)
 \end{lstlisting}
 \bigskip
 The code above shows that under \texttt{\_CHIBIOS\_VM\_} we can call ChibiOS/RT functions.\newline
-The following code shows the usage of the board serial port (called \texttt{SD3} in ChibiOS/RT), so that a string inside an Embryo VM can be directly displayed on a log terminal. While testing the functionalities, we simply print on \texttt{stdout}.
+The following code shows the usage of the board serial port (called \texttt{SD3} in our environment), so that a string inside an Embryo VM can be directly displayed on a log terminal. While testing the functionalities, we simply print on \texttt{stdout}.
 
 \begin{lstlisting}[caption={Native function \textit{print}}]
 Embryo_Cell
@@ -328,7 +328,7 @@ ChibiOS/RT has a static kernel, but offers different ways to manage memory for t
 The \textit{core memory manager} is a simplified allocator that only allows to allocate memory blocks without the possibility to free them, it is meant to be a memory blocks provider for the other allocators.\newline
 The \textit{heap allocator} implements a first-fit strategy to allocate chunks of memory. It is subject to fragmentation, and the allocation time is not constant. Its APIs are functionally equivalent to the usual C \texttt{malloc()} and \texttt{free()}.\newline
 \textit{Memory pools} allow to allocate and free fixed size objects, in constant time and reliably (no fragmentation problems, thread safe...). Memory pools can grow in size if a suitable memory provider has been defined.
-As we want the possibility to load, unload and change Virtual Machines at execution time, flexibility plays a key role in memory management. We needed to analyze how and where the Embryo Abstract Machine allocates and releases memory and translate the memory operations into the best suitable ChibiOS/RT APIs.\newline
+As we want the possibility to load, unload and change Virtual Machines at execution time, flexibility plays a key role in memory management. We needed to analyze how and where the Embryo Abstract Machine allocates and releases memory and translate the operations into the best suitable ChibiOS/RT APIs.\newline
 \bigskip
 We defined:
 
@@ -433,7 +433,7 @@ struct EmbrioVM {
 \end{lstlisting}
 
 \begin{itemize}
-\item \textit{state} represent the current condition of the machine: running, stopped, waiting, etc.
+\item \textit{state} represents the current condition of the machine: running, stopped, waiting, etc.
 \item \textit{tp} is a pointer to the thread that runs the VM on ChibiOS/RT
 \item \textit{ep} is a pointer to the Embryo program to be executed
 \item \textit{hook} is a function pointer to a callback that can be defined at runtime
@@ -482,7 +482,7 @@ if(vm[0]->ep != NULL){
 	vm[0]->tp = vmStart(vm[0], NORMALPRIO, "VM0");
 }
 \end{lstlisting}
-\bigskip
+\medskip
 After initialization, every Virtual Machine is running, and the execution depends on the following elements:
 \begin{itemize}
 \item \textit{Embryo bytecode}: the operations that are coded in each Embryo Program,
@@ -491,7 +491,7 @@ After initialization, every Virtual Machine is running, and the execution depend
 \item \textit{Callbacks}: which Embryo functions are invoked by the callback.
 \end{itemize}
 
-As the overall behavior strongly depends on the elements above, for that reason some tests have been conducted to implement few first simple functionalities in order to analyze the system performances. In the following section we describe the setup and the tests that we carried on.
+As the overall behavior strongly depends on the elements above, for that reason some tests have been conducted to implement few simple functionalities in order to analyze the system performances. In the following section we describe the setup and the tests that we carried on.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -499,8 +499,8 @@ As the overall behavior strongly depends on the elements above, for that reason 
 
 \subsection{Embryo Code}
 
-We decided to implement to Virtual Machines with similar source code. As described in \cite{pawnGuide}, Pawn and also Embryo allow an \textit{event-driven} programming model. The main advantage of this model consists in building reactive programs, which respond to multiple events. The program has more than one entry point: while the \texttt{main} function runs immediately after you start the script and it runs only once, every function whose name begins with @ runs every time it is called. We coded two similar programs to be executed on two different VMs. The following code is an example:
-\bigskip
+We decided to implement two Virtual Machines with similar source code. As described in \cite{pawnGuide}, Pawn and also Embryo allow an \textit{event-driven} programming model. The main advantage of this model consists in building reactive programs, which respond to multiple events. The program has more than one entry point: while the \texttt{main} function runs immediately after you start the script and it runs only once, every function whose name begins with @ runs every time it is called. We coded two similar programs to be executed on two different VMs. The following code is an example:
+\medskip
 \begin{lstlisting}[caption={EmbrIO first VM}]
 #include <printXXX>
 #include <embrio01>
@@ -583,7 +583,7 @@ When loading a new program, we refer to the variables above to access the data.
 vm[0]->ep = embryo_program_load_local(
 				&_binary_vm0_eaf_start,
 				&_binary_vm0_eaf_end,
-				 &_binary_vm0_eaf_size,
+				&_binary_vm0_eaf_size,
 				/* log options */
 				(BaseChannel*)&SD3, TRUE);
 \end{lstlisting}
@@ -622,7 +622,7 @@ void gpt1cb(GPTDriver *gptp) {
 		/* function that tells if a function is in the VM */
 		ef = embryo_program_function_find(vm_tmp->ep, "@eventGPT1");
 		
-		/* if available we send a message to thread */
+		/* if available send a message to thread */
 		if(ef != EMBRYO_FUNCTION_NONE){
 			chMsgSend(vm_tmp->tp,(msg_t)ef);
 		}
@@ -633,10 +633,9 @@ void gpt1cb(GPTDriver *gptp) {
 }
 \end{lstlisting}
 \medskip
-In the example above, a timer event triggers the callback function (named \texttt{gpt1cb}), which looks for a specific function (here \texttt{@eventGPT1}) and, if it is found, sends a message to the corresponding thread. Note that different VMs can implement the same function in different ways, allowing some flexibility: in our case, with the same callback, one VM makes the green led blink and the other vM makes yellow led blink.\newline
+In the example above, a timer event triggers the callback function (named \texttt{gpt1cb}), which looks for a specific function (here \texttt{@eventGPT1}) and, if it is found, sends a message to the corresponding thread. Note that different VMs can implement the same function in different ways, allowing some flexibility: in our case, with the same callback, one VM makes the green led blink and the other VM makes the yellow led blink.\newline
 The \textit{EmbrIO\_VM} \texttt{struct} carries all the necessary information (i.e. pointer to the program, pointer to the thread, ...) to perform the operation.\newline
-\medskip
-When a Virtual Machine thread is spawned, it loads the code, then executes the main function and finally enters an infinite loop waiting for messages. Note that a callback sends a different message to each thread that is involved, and the message carries the value of the function to be executed, coded as a \texttt{Embryo\_Function} parameter. When the message arrives, the thread wakes up and executes the corresponding function. The following code illustrates the operations described above:
+When a Virtual Machine thread is spawned, it loads the code, executes the main function and finally enters an infinite loop waiting for messages. Note that a callback sends a different message to each thread that is involved, and the message carries the value of the function to be executed, coded as a \texttt{Embryo\_Function} parameter. When the message arrives, the thread wakes up and executes the corresponding function. The following code illustrates the operations described above:
 \medskip
 \lstset{language=C}
 \begin{lstlisting}[caption={Callback looking for a function in VMs}]
@@ -712,7 +711,7 @@ Further analysis of the performances is also needed. In particular we cite:
 \item Evaluate if it is possible to optimize memory usage: for example when loading an Embryo program.
 \end{itemize}
 
-As a final remark we can state that ChibiOS-EmbrIO can have very interesting further development.
+As a final remark we can state that ChibiOS-EmbrIO can bring to a very interesting further development.
 
 \begin{figure*}[t]
 	\centering
