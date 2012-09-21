@@ -59,7 +59,8 @@ PROJECT = embrio
 
 # Imported source files and paths
 CHIBIOS = ../../ChibiOS_2.4.2
-include $(CHIBIOS)/boards/OLIMEX_STM32_P107/board.mk
+#include $(CHIBIOS)/boards/OLIMEX_STM32_P107/board.mk
+include $(CHIBIOS)/boards/HY-STM32_STM32F103V/board.mk
 include $(CHIBIOS)/os/hal/platforms/STM32F1xx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F1xx/port.mk
@@ -71,7 +72,8 @@ EMBRYO_LIB = ../embryo-1.0.0/embryo-1.0.0-lib
 include $(EMBRYO_LIB)/embryo_lib.mk
 
 # Define linker script file here
-LDSCRIPT= $(PORTLD)/STM32F107xC.ld
+# LDSCRIPT= $(PORTLD)/STM32F107xC.ld
+LDSCRIPT= $(PORTLD)/STM32F103xE.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -180,7 +182,7 @@ CPPWARN = -Wall -Wextra
 #
 
 # List all default C defines here, like -D_DEBUG=1
-DDEFS = -D_CHIBIOS_VM_
+DDEFS = -D_CHIBIOS_VM_ -D_HY_
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =

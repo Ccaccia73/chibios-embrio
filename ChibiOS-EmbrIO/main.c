@@ -88,6 +88,7 @@ static msg_t Thread1(void *arg) {
 }
 */
 
+
 /*===========================================================================*/
 /* GPT                                                                       */
 /*===========================================================================*/
@@ -250,6 +251,50 @@ static void ext1cb(EXTDriver  *extp, expchannel_t channel) {
 		vm_tmp = vm_tmp->vm_next;
 	}
 }
+#ifdef _HY_
+
+static const EXTConfig ext1cfg = {
+	{
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  0 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  1 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  2 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  3 */
+		{EXT_CH_MODE_FALLING_EDGE, ext1cb},	/* EXT line  4 */
+		{EXT_CH_MODE_FALLING_EDGE, ext0cb},	/* EXT line  5 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  6 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  7 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  8 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line  9 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 10 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 11 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 12 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 13 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 14 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 15 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 16 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 17 */
+		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 18 */
+//		{EXT_CH_MODE_DISABLED, NULL},		/* EXT line 19 */
+	},
+	EXT_MODE_EXTI(0,						/*  0 */
+		0,									/*  1 */
+		0,									/*  2 */
+		0,									/*  3 */
+		EXT_MODE_GPIOE,						/*  4 */
+		EXT_MODE_GPIOE,						/*  5 */
+		0,									/*  6 */
+		0,									/*  7 */
+		0,									/*  8 */
+		0,									/*  9 */
+		0,									/* 10 */
+		0,									/* 11 */
+		0,									/* 12 */
+		0,									/* 13  */
+		0,									/* 14 */
+		0)									/* 15 */
+};
+
+#else
 
 static const EXTConfig ext1cfg = {
 	{
@@ -291,6 +336,8 @@ static const EXTConfig ext1cfg = {
 		0,									/* 14 */
 		0)									/* 15 */
 };
+
+#endif
 
 /*********************************************************************************
  *
@@ -350,8 +397,11 @@ void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
 		/* Calculates the average values from the ADC samples.*/
 		avg_ch1 = (samples[0] + samples[2] + samples[4] + samples[6]) / 4;
 		avg_ch2 = (samples[1] + samples[3] + samples[5] + samples[7]) / 4;
-
+#ifdef _HY_
+		chprintf((BaseChannel*)&SD1,"%d %d\r\n",avg_ch1,avg_ch2);
+#else
 		chprintf((BaseChannel*)&SD3,"%d %d\r\n",avg_ch1,avg_ch2);
+#endif
 
 /*		chSysLockFromIsr();
 
@@ -506,15 +556,27 @@ int main(void) {
 	/*
 	 * Activates the serial driver 3 using the driver default configuration.
 	 */
+#ifdef _HY_
+	sdStart(&SD1, NULL);
+#else
 	sdStart(&SD3, NULL);
-
+#endif
 
 	// switch off the leds
+#ifdef _HY_
+	palClearPad(GPIOC, GPIOC_LED1);
+	palClearPad(GPIOC, GPIOC_LED2);
+#else
 	palClearPad(GPIOC, GREEN_LED);
 	palClearPad(GPIOC, YELLOW_LED);
+#endif
 
 	if(vm_man == NULL){
+#ifdef _HY_
+		chprintf((BaseChannel*)&SD1,"\n\n\rVMM NO\r\n");
+#else
 		chprintf((BaseChannel*)&SD3,"\n\n\rVMM NO\r\n");
+#endif
 	}else{
 		vm_man->vm_count = 0;
 		vm_man->vm_first = NULL;
@@ -525,15 +587,33 @@ int main(void) {
 	vm[0] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
 
 	if(vm[0] == NULL){
+#ifdef _HY_
+		chprintf((BaseChannel*)&SD1,"VM 0 NO\r\n");
+#else
 		chprintf((BaseChannel*)&SD3,"VM 0 NO\r\n");
+#endif
 	}else{
 		// insert VM in linked list of VMs
 		embrioVMMinsert(vm_man, vm[0]);
 		// chprintf((BaseChannel*)&SD3,"VM 0 OK\r\n");
-		vm[0]->ep = embryo_program_load_local(&_binary_vm0_eaf_start, &_binary_vm0_eaf_end, &_binary_vm0_eaf_size, (BaseChannel*)&SD3, TRUE);
+#ifdef _HY_
+		vm[0]->ep = embryo_program_load_local(&_binary_vm0_eaf_start,
+											  &_binary_vm0_eaf_end,
+											  &_binary_vm0_eaf_size,
+											  (BaseChannel*)&SD1, TRUE);
+#else
+		vm[0]->ep = embryo_program_load_local(&_binary_vm0_eaf_start,
+											  &_binary_vm0_eaf_end,
+											  &_binary_vm0_eaf_size,
+											  (BaseChannel*)&SD3, TRUE);
+#endif
 
 		if(vm[0]->ep == NULL){
+#ifdef _HY_
+			chprintf((BaseChannel*)&SD1,"VM 0 ep NO\r\n");
+#else
 			chprintf((BaseChannel*)&SD3,"VM 0 ep NO\r\n");
+#endif
 			vm[0]->state = EMBRIOVM_FAIL;
 		}else{
 			// chprintf((BaseChannel*)&SD3,"VM 0 ep OK\r\n");
@@ -545,15 +625,33 @@ int main(void) {
 	vm[1] = (EmbrioVM*)chPoolAlloc(&EVM_mp);
 
 	if(vm[1] == NULL){
+#ifdef _HY_
+		chprintf((BaseChannel*)&SD1,"VM 1 NO\r\n");
+#else
 		chprintf((BaseChannel*)&SD3,"VM 1 NO\r\n");
+#endif
 	}else{
 		// insert VM in linked list of VMs
 		embrioVMMinsert(vm_man, vm[1]);
 		// chprintf((BaseChannel*)&SD3,"VM 1 OK\r\n");
-		vm[1]->ep = embryo_program_load_local(&_binary_vm1_eaf_start, &_binary_vm1_eaf_end, &_binary_vm1_eaf_size, (BaseChannel*)&SD3, TRUE);
+#ifdef _HY_
+		vm[1]->ep = embryo_program_load_local(&_binary_vm1_eaf_start,
+											  &_binary_vm1_eaf_end,
+											  &_binary_vm1_eaf_size,
+											  (BaseChannel*)&SD1, TRUE);
+#else
+		vm[1]->ep = embryo_program_load_local(&_binary_vm1_eaf_start,
+											  &_binary_vm1_eaf_end,
+											  &_binary_vm1_eaf_size,
+											  (BaseChannel*)&SD3, TRUE);
+#endif
 
 		if(vm[1]->ep == NULL){
+#ifdef _HY_
+			chprintf((BaseChannel*)&SD1,"VM 1 ep NO\r\n");
+#else
 			chprintf((BaseChannel*)&SD3,"VM 1 ep NO\r\n");
+#endif
 			vm[1]->state = EMBRIOVM_FAIL;
 		}else{
 			// chprintf((BaseChannel*)&SD3,"VM 1 ep OK\r\n");
@@ -581,8 +679,8 @@ int main(void) {
 
 	extStart(&EXTD1, &ext1cfg);
 
-	 extChannelEnable(&EXTD1, 0);
-	 extChannelEnable(&EXTD1, 13);
+	 extChannelEnable(&EXTD1, 4);
+	 extChannelEnable(&EXTD1, 5);
 
 	 /*
 	  * Initializes the ADC driver 1 and enable the thermal sensor.
@@ -594,11 +692,13 @@ int main(void) {
 
 	 palSetPadMode(GPIOC, 1, PAL_MODE_INPUT_ANALOG);
 
+#ifdef _HY_
 	 while (TRUE) {
-		if (palReadPad(GPIOC, GPIOC_SWITCH_TAMPER) == 0){
-			// TestThread(&SD3);
-			palTogglePad(GPIOC, GREEN_LED);
+		if (palReadPad(GPIOC, GPIOE_BUTTON3) == 0){
+			TestThread(&SD1);
+			palTogglePad(GPIOD, GPIOD_LED3);
 		}
 		chThdSleepMilliseconds(500);
 	}
+#endif
 }

@@ -63,7 +63,11 @@ _embryo_printXXX_printXXX(Embryo_Program *ep, Embryo_Cell *params)
 
 	STRGET(ep, s, params[1]);
 #ifdef _CHIBIOS_VM_
-	chprintf((BaseChannel*)&SD3, "%s",s);
+	#ifdef _HY_
+		chprintf((BaseChannel*)&SD1, "%s",s);
+	#else
+		chprintf((BaseChannel*)&SD3, "%s",s);
+	#endif
 #else
 	printf("Stringa: %s\n", s);
 #endif
@@ -87,7 +91,11 @@ static Embryo_Cell
 _embryo_toggleXXX(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
-   palTogglePad(GPIOC, YELLOW_LED);
+	#ifdef _HY_
+		palTogglePad(GPIOC, GPIOC_LED1);
+	#else
+		palTogglePad(GPIOC, YELLOW_LED);
+	#endif
 #else
    printf("toggle!\n");
 #endif
@@ -116,8 +124,11 @@ static const GPTConfig gpt1cfg = {
 static _embrio01_toggleLED1(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
-   palTogglePad(GPIOC, GREEN_LED);
-   // chprintf((BaseChannel*)&SD3,"g");
+	#ifdef _HY_
+		palTogglePad(GPIOC, GPIOC_LED1);
+	#else
+		palTogglePad(GPIOC, GREEN_LED);
+	#endif
 #else
    printf("toggle green!\n");
 #endif
@@ -128,8 +139,11 @@ static _embrio01_toggleLED1(Embryo_Program *ep, Embryo_Cell *params)
 static _embrio01_toggleLED2(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
-   palTogglePad(GPIOC, YELLOW_LED);
-   // chprintf((BaseChannel*)&SD3,"y");
+	#ifdef _HY_
+		palTogglePad(GPIOC, GPIOC_LED2);
+	#else
+		palTogglePad(GPIOC, YELLOW_LED);
+	#endif
 #else
    printf("toggle yellow!\n");
 #endif
@@ -142,7 +156,11 @@ static _embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
    /// todo: implement
+#ifdef _HY_
+	chprintf((BaseChannel*)&SD1,"adc\r\n");
+#else
 	chprintf((BaseChannel*)&SD3,"adc\r\n");
+#endif
 #else
    printf("read ADC1!\n");
 #endif
@@ -154,7 +172,11 @@ static _embrio01_readSPI1(Embryo_Program *ep, Embryo_Cell *params)
 {
 #ifdef _CHIBIOS_VM_
    /// todo: implement
-	chprintf((BaseChannel*)&SD3,"spi\r\n");
+	#ifdef _HY_
+		chprintf((BaseChannel*)&SD1,"spi\r\n");
+	#else
+		chprintf((BaseChannel*)&SD3,"spi\r\n");
+	#endif
 #else
    printf("read SPI1!\n");
 #endif
