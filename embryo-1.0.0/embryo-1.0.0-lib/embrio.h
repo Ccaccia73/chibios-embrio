@@ -130,7 +130,7 @@ extern EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 // }
 #endif
 
-#ifndef _TEST_ADC_
+
 /* ADC data */
 
 /* Total number of channels to be sampled by a single ADC operation.*/
@@ -141,7 +141,8 @@ extern EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 
 extern adcsample_t samples[];
 extern const ADCConversionGroup adcgrpcfg;
-#endif
+
+extern const SPIConfig spi1cfg;
 
 #endif /* _VM_H_ */
 

@@ -375,8 +375,15 @@ const ADCConversionGroup adcgrpcfg = {
 };
 
 
+const SPIConfig spi1cfg = {
+		NULL,
+		GPIOA,
+		GPIOA_SPI1NSS,
+		0
+};
 
-#ifdef _TEST_
+
+#ifdef _HY_p
 
 /*
  * SPI1 configuration structure.
@@ -489,98 +496,6 @@ int main(void) {
 #endif
 
 
-#ifdef _TEST_ADC_
-
-#define ADC_GRP1_NUM_CHANNELS   4
-#define ADC_GRP1_BUF_DEPTH      4
-
-#define ADC_GRP2_NUM_CHANNELS   8
-#define ADC_GRP2_BUF_DEPTH      16
-
-static adcsample_t samples1[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
-static adcsample_t samples2[ADC_GRP2_NUM_CHANNELS * ADC_GRP2_BUF_DEPTH];
-
-/*
- * ADC streaming callback.
- */
-size_t nx = 0, ny = 0;
-static void adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
-
-	(void)adcp;
-	if (samples2 == buffer) {
-		nx += n;
-		chprintf((BaseChannel*)&SD1,".");
-	} else {
-		ny += n;
-		chprintf((BaseChannel*)&SD1,"z");
-	}
-}
-
-static void adcerrorcallback(ADCDriver *adcp, adcerror_t err) {
-	(void)adcp;
-	(void)err;
-	chprintf((BaseChannel*)&SD1,"x");
-}
-
-/*
- * ADC conversion group.
- * Mode:        Linear buffer, 8 samples of 1 channel, SW triggered.
- * Channels:    IN10.
- */
-static const ADCConversionGroup adcgrpcfg1 = {
-  FALSE,
-  ADC_GRP1_NUM_CHANNELS,
-  NULL,
-  adcerrorcallback,
-  0, ADC_CR2_TSVREFE,                         /* CR1, CR2 */
-  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_AN10(ADC_SAMPLE_41P5) |
-  ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_239P5) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_239P5),
-  0,                            /* SMPR2 */
-  ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
-  0,                            /* SQR2 */
-  ADC_SQR3_SQ4_N(ADC_CHANNEL_SENSOR) | ADC_SQR3_SQ3_N(ADC_CHANNEL_VREFINT) |
-  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN10)
-};
-
-/*
- * ADC conversion group.
- * Mode:        Continuous, 16 samples of 8 channels, SW triggered.
- * Channels:    IN10, IN11, IN10, IN11, IN10, IN11, Sensor, VRef.
- */
-static const ADCConversionGroup adcgrpcfg2 = {
-  TRUE,
-  ADC_GRP2_NUM_CHANNELS,
-  adccallback,
-  adcerrorcallback,
-  0, ADC_CR2_TSVREFE,           /* CR1, CR2 */
-  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_AN10(ADC_SAMPLE_41P5) |
-  ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_239P5) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_239P5),
-  0,                            /* SMPR2 */
-  ADC_SQR1_NUM_CH(ADC_GRP2_NUM_CHANNELS),
-  ADC_SQR2_SQ8_N(ADC_CHANNEL_SENSOR) | ADC_SQR2_SQ7_N(ADC_CHANNEL_VREFINT),
-  ADC_SQR3_SQ6_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN10) |
-  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN10) |
-  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN10)
-};
-
-/*
- * Red LEDs blinker thread, times are in milliseconds.
- */
-static WORKING_AREA(waThread1, 128);
-static msg_t Thread1(void *arg) {
-
-  (void)arg;
-  chRegSetThreadName("blinker");
-  while (TRUE) {
-    palClearPad(GPIOD, GPIOD_LED3);
-    chThdSleepMilliseconds(500);
-    palSetPad(GPIOD, GPIOD_LED3);
-    chThdSleepMilliseconds(500);
-  }
-  return 0;
-}
-
-#endif
 
 /*
  * Application entry point.
@@ -732,6 +647,14 @@ int main(void) {
 	 */
 	palSetGroupMode(GPIOC, PAL_PORT_BIT(0) | PAL_PORT_BIT(1),
 			0, PAL_MODE_INPUT_ANALOG);
+
+	palSetPadMode(GPIOA, 5, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* SCK. */
+	palSetPadMode(GPIOA, 6, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* MISO.*/
+	palSetPadMode(GPIOA, 7, PAL_MODE_STM32_ALTERNATE_PUSHPULL);     /* MOSI.*/
+	palSetPadMode(GPIOA, GPIOA_SPI1NSS, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetPad(GPIOA, GPIOA_SPI1NSS);
+
+
 #else
 	extChannelEnable(&EXTD1, 0);
 	extChannelEnable(&EXTD1, 13);
@@ -739,9 +662,15 @@ int main(void) {
 
 
 	/*
-	 * Activates the ADC1 driver and the thermal sensor.
+	 * Activates the ADC1 driver.
 	 */
 	adcStart(&ADCD1, NULL);
+
+	/*
+	 * Initializes the SPI driver 1.
+	 */
+	spiStart(&SPID1, &spi1cfg);
+
 
 
 #ifdef _HY_

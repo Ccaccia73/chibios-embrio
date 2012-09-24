@@ -197,7 +197,7 @@ _embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
 		}
 	#else
 		/// todo : implement
-		// chprintf((BaseChannel*)&SD3,"adc\r\n");
+		chprintf((BaseChannel*)&SD3,"adc\r\n");
 	#endif
 #else
    printf("read ADC1!\n");
@@ -212,17 +212,19 @@ _embrio01_readSPI1(Embryo_Program *ep, Embryo_Cell *params)
 	(void)ep;
 	(void)params;
 #ifdef _CHIBIOS_VM_
-   /// todo: implement
-	#ifdef _HY_
-		chprintf((BaseChannel*)&SD1,"spi\r\n");
-	#else
-		chprintf((BaseChannel*)&SD3,"spi\r\n");
-	#endif
+#ifdef _HY_
+
+
+	chprintf((BaseChannel*)&SD1,"spi\r\n");
 #else
-   printf("read SPI1!\n");
+	/// todo: implement
+	chprintf((BaseChannel*)&SD3,"spi\r\n");
+#endif
+#else
+	printf("read SPI1!\n");
 #endif
 
-   return 0;
+	return 0;
 }
 
 /********* Init NATIVE FUNCTIONS *****************/
