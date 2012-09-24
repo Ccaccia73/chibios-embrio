@@ -2,6 +2,7 @@
 
 #include "Embryo.h"
 #include "embryo_private.h"
+#include "embrio.h"
 
 #ifdef _CHIBIOS_VM_
 	//#include <cross_studio_io.h>
@@ -77,6 +78,8 @@ _embryo_printXXX_printXXX(Embryo_Program *ep, Embryo_Cell *params)
 static Embryo_Cell
 _embryo_sleepXXX(Embryo_Program *ep, Embryo_Cell *params)
 {
+	(void)ep;
+	(void)params;
 #ifdef _CHIBIOS_VM_
    chThdSleepMilliseconds(1000);
 #else
@@ -90,6 +93,8 @@ _embryo_sleepXXX(Embryo_Program *ep, Embryo_Cell *params)
 static Embryo_Cell
 _embryo_toggleXXX(Embryo_Program *ep, Embryo_Cell *params)
 {
+	(void)ep;
+	(void)params;
 #ifdef _CHIBIOS_VM_
 	#ifdef _HY_
 		palTogglePad(GPIOC, GPIOC_LED1);
@@ -104,25 +109,13 @@ _embryo_toggleXXX(Embryo_Program *ep, Embryo_Cell *params)
 }
 
 
-#ifdef _CHIBIOS_VM_TMP
-static void _embryo_printXXX_cb(GPTDriver *gptp) {
-
-	(void)gptp;
-	palClearPad(IOPORT2, 5);
-//	subscribed_ep->max_run_cycles = -1; HOOK
-}
-
-
-static const GPTConfig gpt1cfg = {
-	1000,     /* 1KHz timer clock.*/
-	_embryo_printXXX_cb    /* Timer callback.*/
-};
-#endif
-
 /********* embrio01_INC FUNCTIONS *****************/
 
-static _embrio01_toggleLED1(Embryo_Program *ep, Embryo_Cell *params)
+static Embryo_Cell
+_embrio01_toggleLED1(Embryo_Program *ep, Embryo_Cell *params)
 {
+	(void)ep;
+	(void)params;
 #ifdef _CHIBIOS_VM_
 	#ifdef _HY_
 		palTogglePad(GPIOC, GPIOC_LED1);
@@ -136,8 +129,11 @@ static _embrio01_toggleLED1(Embryo_Program *ep, Embryo_Cell *params)
    return 0;
 }
 
-static _embrio01_toggleLED2(Embryo_Program *ep, Embryo_Cell *params)
+static Embryo_Cell
+_embrio01_toggleLED2(Embryo_Program *ep, Embryo_Cell *params)
 {
+	(void)ep;
+	(void)params;
 #ifdef _CHIBIOS_VM_
 	#ifdef _HY_
 		palTogglePad(GPIOC, GPIOC_LED2);
@@ -152,15 +148,27 @@ static _embrio01_toggleLED2(Embryo_Program *ep, Embryo_Cell *params)
 }
 
 
-static _embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
+static Embryo_Cell
+_embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
 {
+	(void)ep;
+	(void)params;
 #ifdef _CHIBIOS_VM_
-   /// todo: implement
-#ifdef _HY_
-	chprintf((BaseChannel*)&SD1,"adc\r\n");
-#else
-	chprintf((BaseChannel*)&SD3,"adc\r\n");
-#endif
+	#ifdef _HY_
+		msg_t ret;
+		ret = adcConvert(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH);
+
+		if(ret == RDY_OK){
+			chprintf((BaseChannel*)&SD1,"adc\r\n");
+		}else if(ret == RDY_RESET){
+			chprintf((BaseChannel*)&SD1,"conv stopped\r\n");
+		}else{
+			chprintf((BaseChannel*)&SD1,"timeout\r\n");
+		}
+	#else
+		/// todo : implement
+		chprintf((BaseChannel*)&SD3,"adc\r\n");
+	#endif
 #else
    printf("read ADC1!\n");
 #endif
@@ -168,8 +176,11 @@ static _embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
    return 0;
 }
 
-static _embrio01_readSPI1(Embryo_Program *ep, Embryo_Cell *params)
+static Embryo_Cell
+_embrio01_readSPI1(Embryo_Program *ep, Embryo_Cell *params)
 {
+	(void)ep;
+	(void)params;
 #ifdef _CHIBIOS_VM_
    /// todo: implement
 	#ifdef _HY_

@@ -345,40 +345,31 @@ static const EXTConfig ext1cfg = {
  *
  *********************************************************************************/
 
-static void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n);
-
 // static void spicb(SPIDriver *spip);
-
-/* Total number of channels to be sampled by a single ADC operation.*/
-#define ADC_GRP1_NUM_CHANNELS   2
-
-/* Depth of the conversion buffer, channels are sampled four times each.*/
-#define ADC_GRP1_BUF_DEPTH      4
-
 /*
  * ADC samples buffer.
  */
-static adcsample_t samples[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
+adcsample_t samples[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
 
 /*
  * ADC conversion group.
- * Mode:        Linear buffer, 4 samples of 2 channels, SW triggered.
- * Channels:    IN11   (48 cycles sample time)
- *              Sensor (192 cycles sample time)
+ * Mode:        Linear buffer, 4 samples of 3 channels, SW triggered.
+ * Channels:    Potentiometers IN10 & IN11   (41.5 cycles sample time)
+ *              Temp Sensor (239.5 cycles sample time)
  */
-static const ADCConversionGroup adcgrpcfg = {
+const ADCConversionGroup adcgrpcfg = {
 		FALSE,
 		ADC_GRP1_NUM_CHANNELS,
 		adccb,
 		NULL,
 		/* HW dependent part.*/
 		0,
-		ADC_CR2_SWSTART,
-		ADC_SMPR1_SMP_AN11(ADC_SAMPLE_55P5) | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_55P5),
+		ADC_CR2_SWSTART | ADC_CR2_TSVREFE,
+		ADC_SMPR1_SMP_AN10(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_239P5),
 		0,
 		ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
 		0,
-		ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11) | ADC_SQR3_SQ1_N(ADC_CHANNEL_SENSOR)
+		ADC_SQR3_SQ1_N (ADC_CHANNEL_IN10) | ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11) | ADC_SQR3_SQ1_N(ADC_CHANNEL_SENSOR)
 };
 
 /*
@@ -386,38 +377,31 @@ static const ADCConversionGroup adcgrpcfg = {
  * The PWM channels are reprogrammed using the latest ADC samples.
  * The latest samples are transmitted into a single SPI transaction.
  */
+adcsample_t avg_ch1, avg_ch2, avg_temp;
+
+
 void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
 
 	(void) buffer; (void) n;
 	/* Note, only in the ADC_COMPLETE state because the ADC driver fires an
      intermediate callback when the buffer is half full.*/
 	if (adcp->state == ADC_COMPLETE) {
-		adcsample_t avg_ch1, avg_ch2;
 
 		/* Calculates the average values from the ADC samples.*/
-		avg_ch1 = (samples[0] + samples[2] + samples[4] + samples[6]) / 4;
-		avg_ch2 = (samples[1] + samples[3] + samples[5] + samples[7]) / 4;
+		avg_ch1 =  (samples[0] + samples[3] + samples[6] + samples[9] ) / 4;
+		avg_ch2 =  (samples[1] + samples[4] + samples[7] + samples[10]) / 4;
+		avg_temp = (samples[2] + samples[5] + samples[8] + samples[11]) / 4;
 #ifdef _HY_
-		chprintf((BaseChannel*)&SD1,"%d %d\r\n",avg_ch1,avg_ch2);
+		// chprintf((BaseChannel*)&SD1,"%d %d\r\n",avg_ch1,avg_ch2);
 #else
-		chprintf((BaseChannel*)&SD3,"%d %d\r\n",avg_ch1,avg_ch2);
+		// chprintf((BaseChannel*)&SD3,"%d %d\r\n",avg_ch1,avg_ch2);
 #endif
 
-/*		chSysLockFromIsr();
-
-
-		// SPI slave selection and transmission start.
-		spiSelectI(&SPID2);
-		spiStartSendI(&SPID2, ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH, samples);
-
-		chSysUnlockFromIsr();*/
 	}
 }
 
 
 #ifdef _TEST_
-
-
 
 /*
  * SPI1 configuration structure.
@@ -673,28 +657,29 @@ int main(void) {
 	gptStart(&GPTD2, &gpt2cfg);
 	gptStart(&GPTD3, &gpt3cfg);
 
-	gptStartContinuous(&GPTD1, 20001);
-	gptStartContinuous(&GPTD2, 12001);
-	gptStartContinuous(&GPTD3, 23001);
+	gptStartContinuous(&GPTD1, 5001);	/* BLINK */
+	gptStartContinuous(&GPTD2, 5001);	/* ADC	 */
+	gptStartContinuous(&GPTD3, 3001);	/* SPI   */
 
 	extStart(&EXTD1, &ext1cfg);
-
+#ifdef _HY_
 	 extChannelEnable(&EXTD1, 4);
 	 extChannelEnable(&EXTD1, 5);
+#else
+	 extChannelEnable(&EXTD1, 0);
+	 extChannelEnable(&EXTD1, 13);
+#endif
 
 	 /*
-	  * Initializes the ADC driver 1 and enable the thermal sensor.
-	  * The pin PC0 on the port GPIOC is programmed as analog input.
-	  */
-	 adcStart(&ADCD1, NULL);
+	   * Setting up analog inputs connected to trimmers.
+	   */
+	palSetGroupMode(GPIOC, PAL_PORT_BIT(0) | PAL_PORT_BIT(1), 0, PAL_MODE_INPUT_ANALOG);
+	adcStart(&ADCD1, NULL);
 
-	 adcStartConversion(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH);
-
-	 palSetPadMode(GPIOC, 1, PAL_MODE_INPUT_ANALOG);
 
 #ifdef _HY_
-	 while (TRUE) {
-		if (palReadPad(GPIOC, GPIOE_BUTTON3) == 0){
+	while (TRUE) {
+		if (palReadPad(GPIOE, GPIOE_BUTTON3) == 0){
 			TestThread(&SD1);
 			palTogglePad(GPIOD, GPIOD_LED3);
 		}
