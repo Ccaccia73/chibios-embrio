@@ -130,18 +130,18 @@ extern EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 // }
 #endif
 
+#ifndef _TEST_ADC_
 /* ADC data */
-void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n);
-
 
 /* Total number of channels to be sampled by a single ADC operation.*/
-#define ADC_GRP1_NUM_CHANNELS	3
+#define ADC_GRP1_NUM_CHANNELS	4
 
 /* Depth of the conversion buffer, channels are sampled four times each.*/
 #define ADC_GRP1_BUF_DEPTH		4
 
 extern adcsample_t samples[];
 extern const ADCConversionGroup adcgrpcfg;
+#endif
 
 #endif /* _VM_H_ */
 

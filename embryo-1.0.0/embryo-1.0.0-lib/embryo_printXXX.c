@@ -153,13 +153,43 @@ _embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
 {
 	(void)ep;
 	(void)params;
+	adcsample_t avg_ch1, avg_ch2, avg_temp, avg_v;
 #ifdef _CHIBIOS_VM_
+
 	#ifdef _HY_
 		msg_t ret;
-		ret = adcConvert(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH);
+		ret = adcConvert(&ADCD1, &adcgrpcfg, samples, ADC_GRP1_BUF_DEPTH);
 
 		if(ret == RDY_OK){
-			chprintf((BaseChannel*)&SD1,"adc\r\n");
+			int i;
+
+			avg_ch1 = 0;
+			for (i = 0; i < ADC_GRP1_BUF_DEPTH*ADC_GRP1_NUM_CHANNELS; i+=ADC_GRP1_NUM_CHANNELS) {
+				avg_ch1+=samples[i];
+			}
+			avg_ch1 >>= 2;
+
+			avg_ch2 = 0;
+			for (i = 1; i < ADC_GRP1_BUF_DEPTH*ADC_GRP1_NUM_CHANNELS; i+=ADC_GRP1_NUM_CHANNELS) {
+				avg_ch2+=samples[i];
+			}
+			avg_ch2 >>= 2;
+
+			avg_v = 0;
+			for (i = 2; i < ADC_GRP1_BUF_DEPTH*ADC_GRP1_NUM_CHANNELS; i+=ADC_GRP1_NUM_CHANNELS) {
+				avg_v+=samples[i];
+			}
+			avg_v >>= 2;
+
+			avg_temp = 0;
+			for (i = 3; i < ADC_GRP1_BUF_DEPTH*ADC_GRP1_NUM_CHANNELS; i+=ADC_GRP1_NUM_CHANNELS) {
+				avg_temp+=samples[i];
+			}
+			avg_temp >>= 2;
+
+			// adcStopConversion(&ADCD1);
+			chprintf((BaseChannel*)&SD1,"%d %d %d %d\r\n",avg_ch1,avg_ch2,avg_v,avg_temp);
+
 		}else if(ret == RDY_RESET){
 			chprintf((BaseChannel*)&SD1,"conv stopped\r\n");
 		}else{
@@ -167,7 +197,7 @@ _embrio01_readADC1(Embryo_Program *ep, Embryo_Cell *params)
 		}
 	#else
 		/// todo : implement
-		chprintf((BaseChannel*)&SD3,"adc\r\n");
+		// chprintf((BaseChannel*)&SD3,"adc\r\n");
 	#endif
 #else
    printf("read ADC1!\n");

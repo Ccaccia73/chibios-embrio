@@ -345,6 +345,7 @@ static const EXTConfig ext1cfg = {
  *
  *********************************************************************************/
 
+
 // static void spicb(SPIDriver *spip);
 /*
  * ADC samples buffer.
@@ -357,48 +358,22 @@ adcsample_t samples[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
  * Channels:    Potentiometers IN10 & IN11   (41.5 cycles sample time)
  *              Temp Sensor (239.5 cycles sample time)
  */
+
 const ADCConversionGroup adcgrpcfg = {
-		FALSE,
-		ADC_GRP1_NUM_CHANNELS,
-		adccb,
-		NULL,
-		/* HW dependent part.*/
-		0,
-		ADC_CR2_SWSTART | ADC_CR2_TSVREFE,
-		ADC_SMPR1_SMP_AN10(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_239P5),
-		0,
-		ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
-		0,
-		ADC_SQR3_SQ1_N (ADC_CHANNEL_IN10) | ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11) | ADC_SQR3_SQ1_N(ADC_CHANNEL_SENSOR)
+  FALSE,
+  ADC_GRP1_NUM_CHANNELS,
+  NULL,
+  NULL,// adcerrorcallback,
+  0, ADC_CR2_TSVREFE,                         /* CR1, CR2 */
+  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_AN10(ADC_SAMPLE_41P5) |
+  ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_239P5) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_239P5),
+  0,                            /* SMPR2 */
+  ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
+  0,                            /* SQR2 */
+  ADC_SQR3_SQ4_N(ADC_CHANNEL_SENSOR) | ADC_SQR3_SQ3_N(ADC_CHANNEL_VREFINT) |
+  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN10)
 };
 
-/*
- * ADC end conversion callback.
- * The PWM channels are reprogrammed using the latest ADC samples.
- * The latest samples are transmitted into a single SPI transaction.
- */
-adcsample_t avg_ch1, avg_ch2, avg_temp;
-
-
-void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
-
-	(void) buffer; (void) n;
-	/* Note, only in the ADC_COMPLETE state because the ADC driver fires an
-     intermediate callback when the buffer is half full.*/
-	if (adcp->state == ADC_COMPLETE) {
-
-		/* Calculates the average values from the ADC samples.*/
-		avg_ch1 =  (samples[0] + samples[3] + samples[6] + samples[9] ) / 4;
-		avg_ch2 =  (samples[1] + samples[4] + samples[7] + samples[10]) / 4;
-		avg_temp = (samples[2] + samples[5] + samples[8] + samples[11]) / 4;
-#ifdef _HY_
-		// chprintf((BaseChannel*)&SD1,"%d %d\r\n",avg_ch1,avg_ch2);
-#else
-		// chprintf((BaseChannel*)&SD3,"%d %d\r\n",avg_ch1,avg_ch2);
-#endif
-
-	}
-}
 
 
 #ifdef _TEST_
@@ -513,6 +488,100 @@ int main(void) {
 
 #endif
 
+
+#ifdef _TEST_ADC_
+
+#define ADC_GRP1_NUM_CHANNELS   4
+#define ADC_GRP1_BUF_DEPTH      4
+
+#define ADC_GRP2_NUM_CHANNELS   8
+#define ADC_GRP2_BUF_DEPTH      16
+
+static adcsample_t samples1[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
+static adcsample_t samples2[ADC_GRP2_NUM_CHANNELS * ADC_GRP2_BUF_DEPTH];
+
+/*
+ * ADC streaming callback.
+ */
+size_t nx = 0, ny = 0;
+static void adccallback(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
+
+	(void)adcp;
+	if (samples2 == buffer) {
+		nx += n;
+		chprintf((BaseChannel*)&SD1,".");
+	} else {
+		ny += n;
+		chprintf((BaseChannel*)&SD1,"z");
+	}
+}
+
+static void adcerrorcallback(ADCDriver *adcp, adcerror_t err) {
+	(void)adcp;
+	(void)err;
+	chprintf((BaseChannel*)&SD1,"x");
+}
+
+/*
+ * ADC conversion group.
+ * Mode:        Linear buffer, 8 samples of 1 channel, SW triggered.
+ * Channels:    IN10.
+ */
+static const ADCConversionGroup adcgrpcfg1 = {
+  FALSE,
+  ADC_GRP1_NUM_CHANNELS,
+  NULL,
+  adcerrorcallback,
+  0, ADC_CR2_TSVREFE,                         /* CR1, CR2 */
+  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_AN10(ADC_SAMPLE_41P5) |
+  ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_239P5) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_239P5),
+  0,                            /* SMPR2 */
+  ADC_SQR1_NUM_CH(ADC_GRP1_NUM_CHANNELS),
+  0,                            /* SQR2 */
+  ADC_SQR3_SQ4_N(ADC_CHANNEL_SENSOR) | ADC_SQR3_SQ3_N(ADC_CHANNEL_VREFINT) |
+  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN10)
+};
+
+/*
+ * ADC conversion group.
+ * Mode:        Continuous, 16 samples of 8 channels, SW triggered.
+ * Channels:    IN10, IN11, IN10, IN11, IN10, IN11, Sensor, VRef.
+ */
+static const ADCConversionGroup adcgrpcfg2 = {
+  TRUE,
+  ADC_GRP2_NUM_CHANNELS,
+  adccallback,
+  adcerrorcallback,
+  0, ADC_CR2_TSVREFE,           /* CR1, CR2 */
+  ADC_SMPR1_SMP_AN11(ADC_SAMPLE_41P5) | ADC_SMPR1_SMP_AN10(ADC_SAMPLE_41P5) |
+  ADC_SMPR1_SMP_SENSOR(ADC_SAMPLE_239P5) | ADC_SMPR1_SMP_VREF(ADC_SAMPLE_239P5),
+  0,                            /* SMPR2 */
+  ADC_SQR1_NUM_CH(ADC_GRP2_NUM_CHANNELS),
+  ADC_SQR2_SQ8_N(ADC_CHANNEL_SENSOR) | ADC_SQR2_SQ7_N(ADC_CHANNEL_VREFINT),
+  ADC_SQR3_SQ6_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ5_N(ADC_CHANNEL_IN10) |
+  ADC_SQR3_SQ4_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ3_N(ADC_CHANNEL_IN10) |
+  ADC_SQR3_SQ2_N(ADC_CHANNEL_IN11)   | ADC_SQR3_SQ1_N(ADC_CHANNEL_IN10)
+};
+
+/*
+ * Red LEDs blinker thread, times are in milliseconds.
+ */
+static WORKING_AREA(waThread1, 128);
+static msg_t Thread1(void *arg) {
+
+  (void)arg;
+  chRegSetThreadName("blinker");
+  while (TRUE) {
+    palClearPad(GPIOD, GPIOD_LED3);
+    chThdSleepMilliseconds(500);
+    palSetPad(GPIOD, GPIOD_LED3);
+    chThdSleepMilliseconds(500);
+  }
+  return 0;
+}
+
+#endif
+
 /*
  * Application entry point.
  */
@@ -582,14 +651,14 @@ int main(void) {
 		// chprintf((BaseChannel*)&SD3,"VM 0 OK\r\n");
 #ifdef _HY_
 		vm[0]->ep = embryo_program_load_local(&_binary_vm0_eaf_start,
-											  &_binary_vm0_eaf_end,
-											  &_binary_vm0_eaf_size,
-											  (BaseChannel*)&SD1, TRUE);
+				&_binary_vm0_eaf_end,
+				&_binary_vm0_eaf_size,
+				(BaseChannel*)&SD1, TRUE);
 #else
 		vm[0]->ep = embryo_program_load_local(&_binary_vm0_eaf_start,
-											  &_binary_vm0_eaf_end,
-											  &_binary_vm0_eaf_size,
-											  (BaseChannel*)&SD3, TRUE);
+				&_binary_vm0_eaf_end,
+				&_binary_vm0_eaf_size,
+				(BaseChannel*)&SD3, TRUE);
 #endif
 
 		if(vm[0]->ep == NULL){
@@ -620,14 +689,14 @@ int main(void) {
 		// chprintf((BaseChannel*)&SD3,"VM 1 OK\r\n");
 #ifdef _HY_
 		vm[1]->ep = embryo_program_load_local(&_binary_vm1_eaf_start,
-											  &_binary_vm1_eaf_end,
-											  &_binary_vm1_eaf_size,
-											  (BaseChannel*)&SD1, TRUE);
+				&_binary_vm1_eaf_end,
+				&_binary_vm1_eaf_size,
+				(BaseChannel*)&SD1, TRUE);
 #else
 		vm[1]->ep = embryo_program_load_local(&_binary_vm1_eaf_start,
-											  &_binary_vm1_eaf_end,
-											  &_binary_vm1_eaf_size,
-											  (BaseChannel*)&SD3, TRUE);
+				&_binary_vm1_eaf_end,
+				&_binary_vm1_eaf_size,
+				(BaseChannel*)&SD3, TRUE);
 #endif
 
 		if(vm[1]->ep == NULL){
@@ -644,13 +713,6 @@ int main(void) {
 		}
 	}
 
-	/*
-	 * Normal main() thread activity, in this demo it does nothing except
-	 * sleeping in a loop and check the button state.
-	 */
-
-	// sdWrite(&SD3,"pippo\n",strlen("pippo\n"));
-
 	chRegSetThreadName("VM Manager");
 
 	gptStart(&GPTD1, &gpt1cfg);
@@ -663,17 +725,22 @@ int main(void) {
 
 	extStart(&EXTD1, &ext1cfg);
 #ifdef _HY_
-	 extChannelEnable(&EXTD1, 4);
-	 extChannelEnable(&EXTD1, 5);
+	extChannelEnable(&EXTD1, 4);
+	extChannelEnable(&EXTD1, 5);
+	/*
+	 * Setting up analog inputs used by the demo.
+	 */
+	palSetGroupMode(GPIOC, PAL_PORT_BIT(0) | PAL_PORT_BIT(1),
+			0, PAL_MODE_INPUT_ANALOG);
 #else
-	 extChannelEnable(&EXTD1, 0);
-	 extChannelEnable(&EXTD1, 13);
+	extChannelEnable(&EXTD1, 0);
+	extChannelEnable(&EXTD1, 13);
 #endif
 
-	 /*
-	   * Setting up analog inputs connected to trimmers.
-	   */
-	palSetGroupMode(GPIOC, PAL_PORT_BIT(0) | PAL_PORT_BIT(1), 0, PAL_MODE_INPUT_ANALOG);
+
+	/*
+	 * Activates the ADC1 driver and the thermal sensor.
+	 */
 	adcStart(&ADCD1, NULL);
 
 
