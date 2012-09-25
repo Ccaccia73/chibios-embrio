@@ -142,6 +142,8 @@ extern EmbrioVM *vm[MAX_EMBRIO_VM_NUM];
 extern adcsample_t samples[];
 extern const ADCConversionGroup adcgrpcfg;
 
+/* SPI data */
+
 extern const SPIConfig spi1cfg;
 
 #endif /* _VM_H_ */

@@ -375,6 +375,10 @@ const ADCConversionGroup adcgrpcfg = {
 };
 
 
+/*
+ * SPI configuration
+ */
+
 const SPIConfig spi1cfg = {
 		NULL,
 		GPIOA,

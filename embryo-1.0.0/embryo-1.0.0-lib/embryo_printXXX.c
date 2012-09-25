@@ -22,6 +22,14 @@
 #endif
 
 
+/*
+ * SPI rx and tx buffers
+ */
+
+static uint8_t spi_txbuf[2];
+static uint8_t spi_rxbuf[2];
+
+
 /// FIXME: switch to heap?
 
 #ifdef _CHIBIOS_VM_
@@ -211,11 +219,31 @@ _embrio01_readSPI1(Embryo_Program *ep, Embryo_Cell *params)
 {
 	(void)ep;
 	(void)params;
+
+	int t;
 #ifdef _CHIBIOS_VM_
 #ifdef _HY_
+    spiAcquireBus(&SPID1);              /* Acquire ownership of the bus.    */
 
+    spiSelect(&SPID1);                  /* Slave Select assertion.          */
 
-	chprintf((BaseChannel*)&SD1,"spi\r\n");
+    /*
+     * Send Convert T to sensor
+     */
+    spi_txbuf[0] = 0x4;
+    spi_txbuf[1] = 0x4;
+    spiSend(&SPID1,2,spi_txbuf);
+    /* spiExchange(&SPID1, 8, spi_txbuf, spi_rxbuf);  /* Atomic transfer operations.      */
+
+    spiReceive(&SPID1,2,spi_rxbuf);
+    spiUnselect(&SPID1);                /* Slave Select de-assertion.       */
+    spiReleaseBus(&SPID1);              /* Ownership release.               */
+
+    t = 0;
+
+    t = spi_rxbuf[0] | ((int)spi_rxbuf[1]<<8);
+	chprintf((BaseChannel*)&SD1,"spi x: %x\r\n",t);
+	chprintf((BaseChannel*)&SD1,"spi: %d\r\n",t);
 #else
 	/// todo: implement
 	chprintf((BaseChannel*)&SD3,"spi\r\n");
